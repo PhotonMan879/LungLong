@@ -114,6 +114,8 @@ function renderSavedCard(place, state, trip) {
           data-action="open-maps" data-query="${escapeHtml(place.name)} Japan">Maps</button>
         <button class="tiny-btn" type="button" style="border-color:var(--accent); color:var(--accent);"
           data-action="toggle-move-to-day" data-place-id="${place.id}">🗓️ ลง Itinerary</button>
+        ${(place.lat && place.lng) ? `<button class="tiny-btn" type="button"
+          data-action="show-on-map" data-lat="${place.lat}" data-lng="${place.lng}">🗺️ Map</button>` : ""}
       </div>
       ${moveDayButtons}
       ${(place.lat && place.lng) ? `<div class="place-mini-map" id="mini-map-${escapeHtml(place.id)}" data-lat="${place.lat}" data-lng="${place.lng}" data-name="${escapeHtml(place.name)}"></div>` : ""}

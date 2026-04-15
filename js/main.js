@@ -16,7 +16,7 @@ import { renderSettings } from "./views/settings.js";
 import { renderTemplatePicker } from "./views/template-picker.js";
 import { renderTransport } from "./views/transport.js";
 import { renderPlaces } from "./views/places.js";
-import { initMap, updateMapMarkers } from "./core/map.js";
+import { initMap, updateMapMarkers, panMapTo } from "./core/map.js";
 
 const app = document.getElementById("app");
 const searchInput = document.getElementById("global-search");
@@ -228,7 +228,8 @@ function render() {
       mapPane.setAttribute("aria-hidden", "false");
       setTimeout(() => {
         initMap();
-        updateMapMarkers(trip, state.view);
+        const activeDayId = state.view === "itinerary" ? (trip.dayId || null) : null;
+        updateMapMarkers(trip, state.view, activeDayId);
       }, 50);
     } else {
       mapPane.setAttribute("aria-hidden", "true");
@@ -682,6 +683,11 @@ function wireEvents() {
     if (action === "open-link") openInNewTab(target.dataset.url);
     if (action === "close-modal") closeModal();
     if (action === "open-maps") openInNewTab(mapsSearchUrl(target.dataset.query));
+    if (action === "show-on-map") {
+      const lat = parseFloat(target.dataset.lat);
+      const lng = parseFloat(target.dataset.lng);
+      if (!isNaN(lat) && !isNaN(lng)) panMapTo(lat, lng, 15);
+    }
     if (action === "open-research") openInNewTab(researchUrl(target.dataset.query));
     if (action === "save-backup-spot") { const spot = getBackupSpotById(target.dataset.spotId); if (spot) openCustomSpotModal({ ...spot, region: "Shortlisted backup" }); }
     if (action === "add-custom-spot") openCustomSpotModal();
