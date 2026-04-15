@@ -229,8 +229,16 @@ button:hover {
 .meta-row,
 .action-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.action-row::-webkit-scrollbar {
+  display: none;
 }
 
 .badge,

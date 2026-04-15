@@ -224,12 +224,11 @@ function render() {
   // Map logic
   const mapPane = document.getElementById("map-pane");
   if (mapPane) {
-    if (state.view === "itinerary" || state.view === "places") {
+    if (state.view === "places") {
       mapPane.setAttribute("aria-hidden", "false");
       setTimeout(() => {
         initMap();
-        const activeDayId = state.view === "itinerary" ? (trip.dayId || null) : null;
-        updateMapMarkers(trip, state.view, activeDayId);
+        updateMapMarkers(trip, state.view, null);
       }, 50);
     } else {
       mapPane.setAttribute("aria-hidden", "true");
