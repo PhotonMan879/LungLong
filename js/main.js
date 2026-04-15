@@ -394,6 +394,7 @@ function wireEvents() {
     if (action === "edit-note") handleActivityNote(target.dataset.activityId);
     if (action === "add-link") handleActivityLink(target.dataset.activityId);
     if (action === "remove-link") removeActivityLink(target.dataset.activityId, Number(target.dataset.linkIndex));
+    if (action === "open-link") openInNewTab(target.dataset.url);
     if (action === "close-modal") closeModal();
     if (action === "open-maps") openInNewTab(mapsSearchUrl(target.dataset.query));
     if (action === "open-research") openInNewTab(researchUrl(target.dataset.query));

@@ -461,6 +461,92 @@ button:hover {
   border-radius: 12px;
 }
 
+.link-item-rich {
+  align-items: stretch;
+}
+
+.link-thumb-wrap {
+  width: 132px;
+  min-width: 132px;
+  height: 84px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.link-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.link-thumb-fallback {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.link-content {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.link-title {
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.link-actions {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.link-badge {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.link-badge-youtube {
+  background: rgba(255, 0, 0, 0.12);
+  color: #c01818;
+  border-color: rgba(255, 0, 0, 0.18);
+}
+
+.link-badge-facebook {
+  background: rgba(24, 119, 242, 0.12);
+  color: #1664d1;
+  border-color: rgba(24, 119, 242, 0.18);
+}
+
+.link-badge-instagram {
+  background: rgba(193, 53, 132, 0.12);
+  color: #b12f79;
+  border-color: rgba(193, 53, 132, 0.18);
+}
+
+.link-badge-tiktok {
+  background: rgba(20, 20, 20, 0.12);
+  color: #202020;
+  border-color: rgba(20, 20, 20, 0.14);
+}
+
+.link-badge-generic {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: rgba(184, 52, 47, 0.16);
+}
+
 .backup-card,
 .doc-card,
 .settings-card {

@@ -88,3 +88,62 @@ export function openInNewTab(url) {
 export function joinTags(tags = []) {
   return tags.map((tag) => `<span class="inline-tag">${escapeHtml(tag)}</span>`).join("");
 }
+
+function getYouTubeId(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes("youtu.be")) {
+      return parsed.pathname.replace("/", "") || null;
+    }
+    if (parsed.hostname.includes("youtube.com")) {
+      return parsed.searchParams.get("v") || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function getLinkPreview(url) {
+  const fallback = {
+    type: "link",
+    label: "Link",
+    badgeClass: "link-badge-generic",
+    icon: "🔗",
+    thumbnail: "",
+    displayUrl: url
+  };
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace("www.", "");
+    const youtubeId = getYouTubeId(url);
+
+    if (youtubeId) {
+      return {
+        type: "youtube",
+        label: "YouTube",
+        badgeClass: "link-badge-youtube",
+        icon: "▶",
+        thumbnail: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+        displayUrl: host
+      };
+    }
+
+    if (host.includes("instagram.com")) {
+      return { ...fallback, type: "instagram", label: "Instagram", badgeClass: "link-badge-instagram", icon: "◎", displayUrl: host };
+    }
+
+    if (host.includes("tiktok.com")) {
+      return { ...fallback, type: "tiktok", label: "TikTok", badgeClass: "link-badge-tiktok", icon: "♪", displayUrl: host };
+    }
+
+    if (host.includes("facebook.com") || host.includes("fb.watch")) {
+      return { ...fallback, type: "facebook", label: "Facebook", badgeClass: "link-badge-facebook", icon: "f", displayUrl: host };
+    }
+
+    return { ...fallback, displayUrl: host };
+  } catch {
+    return fallback;
+  }
+}

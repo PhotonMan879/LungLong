@@ -1,4 +1,4 @@
-import { escapeHtml, joinTags, mapsSearchUrl, researchUrl, textMatches } from "../core/utils.js";
+import { escapeHtml, getLinkPreview, joinTags, mapsSearchUrl, researchUrl, textMatches } from "../core/utils.js";
 
 function matchesFilter(activityState, filter) {
   if (filter === "all") return true;
@@ -84,14 +84,7 @@ export function renderItinerary(state, trip) {
                         activityState.links?.length
                           ? `<div class="link-list" style="margin-top:12px;">
                               ${activityState.links
-                                .map(
-                                  (link, index) => `
-                                    <div class="link-item">
-                                      <a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${escapeHtml(link)}</a>
-                                      <button class="tiny-btn" type="button" data-action="remove-link" data-activity-id="${activity.id}" data-link-index="${index}">ลบ</button>
-                                    </div>
-                                  `
-                                )
+                                .map((link, index) => renderLinkCard(link, activity.id, index))
                                 .join("")}
                             </div>`
                           : ""
@@ -113,5 +106,33 @@ export function renderItinerary(state, trip) {
         }
       </div>
     </section>
+  `;
+}
+
+function renderLinkCard(link, activityId, index) {
+  const preview = getLinkPreview(link);
+  return `
+    <div class="link-item link-item-rich">
+      ${
+        preview.thumbnail
+          ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" class="link-thumb-wrap">
+              <img class="link-thumb" src="${escapeHtml(preview.thumbnail)}" alt="${escapeHtml(preview.label)} preview">
+            </a>`
+          : `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" class="link-thumb-wrap link-thumb-fallback ${preview.badgeClass}">
+              <span>${escapeHtml(preview.icon)}</span>
+            </a>`
+      }
+      <div class="link-content">
+        <div class="chip-row">
+          <span class="link-badge ${preview.badgeClass}">${escapeHtml(preview.label)}</span>
+        </div>
+        <a href="${escapeHtml(link)}" target="_blank" rel="noreferrer" class="link-title">${escapeHtml(link)}</a>
+        <div class="muted">${escapeHtml(preview.displayUrl)}</div>
+      </div>
+      <div class="link-actions">
+        <button class="tiny-btn" type="button" data-action="open-link" data-url="${escapeHtml(link)}">เปิด</button>
+        <button class="tiny-btn" type="button" data-action="remove-link" data-activity-id="${activityId}" data-link-index="${index}">ลบ</button>
+      </div>
+    </div>
   `;
 }
