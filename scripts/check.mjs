@@ -45,11 +45,43 @@ Object.defineProperty(globalThis, "document", {
   configurable: true
 });
 
+const _localStore = {};
+Object.defineProperty(globalThis, "localStorage", {
+  value: {
+    getItem: (k) => _localStore[k] ?? null,
+    setItem: (k, v) => { _localStore[k] = v; },
+    removeItem: (k) => { delete _localStore[k]; }
+  },
+  configurable: true
+});
+
 Object.defineProperty(globalThis, "window", {
   value: {
     open() {},
     setTimeout,
-    clearTimeout
+    clearTimeout,
+    location: { href: "http://localhost/" },
+    supabase: {
+      createClient: () => ({
+        auth: {
+          getSession: async () => ({ data: { session: null } }),
+          signInWithOtp: async () => ({ error: null }),
+          signOut: async () => {},
+          onAuthStateChange: () => ({ data: { subscription: null } })
+        },
+        from: () => ({
+          select: () => ({ eq: async () => ({ data: [], error: null }) }),
+          upsert: async () => ({ error: null })
+        }),
+        storage: {
+          from: () => ({
+            upload: async () => ({ data: null, error: null }),
+            download: async () => ({ data: null, error: null }),
+            remove: async () => ({ data: null, error: null })
+          })
+        }
+      })
+    }
   },
   configurable: true
 });

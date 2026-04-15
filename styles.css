@@ -731,6 +731,57 @@ button:hover {
   transform: translateY(0);
 }
 
+/* ── Auth overlay ─────────────────────────────── */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.auth-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.auth-inner {
+  background: var(--surface-strong);
+  border-radius: var(--radius-xl);
+  padding: 40px 32px 32px;
+  width: min(420px, 92vw);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-logo {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.auth-title {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.auth-sent-box {
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  text-align: center;
+  width: 100%;
+  font-weight: 600;
+}
+
 .modal-shell {
   position: fixed;
   inset: 0;

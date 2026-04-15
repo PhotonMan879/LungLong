@@ -1,6 +1,8 @@
 import { cloneDefaultTripTemplate, TRIP_TEMPLATES } from "./data/trip-data.js";
 import { clearDocStore, dataUrlToBlob, deleteDocBlob, getDocBlob, putDocBlob, blobToDataUrl } from "./core/storage.js";
 import { createDefaultState, createTripState, loadState, saveState } from "./core/state.js";
+import { supabase, getSession, signInWithEmail, signOut, loadTripsFromCloud, saveTripToCloud, uploadDocToCloud, downloadDocFromCloud, deleteDocFromCloud } from "./core/supabase.js";
+import { renderAuthOverlay } from "./views/auth.js";
 import { downloadJson, mapsSearchUrl, openInNewTab, researchUrl, uid } from "./core/utils.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderAssist } from "./views/assist.js";
@@ -44,6 +46,8 @@ const modalCategoryWrap = document.getElementById("modal-category-wrap");
 const modalTimeWrap = document.getElementById("modal-time-wrap");
 const modalUrlWrap = document.getElementById("modal-url-wrap");
 const modalTextWrap = document.getElementById("modal-text-wrap");
+const authOverlay = document.getElementById("auth-overlay");
+const authBtn = document.getElementById("auth-btn");
 
 let state = loadState();
 state.rainMode = false; // UI-only, not persisted
@@ -51,6 +55,8 @@ state.placesFilter = "all"; // UI-only, not persisted
 state.movingPlaceId = null; // UI-only, not persisted
 let toastTimer = null;
 let dragSrcSpotId = null;
+let currentUserId = null;
+let syncTimer = null;
 
 function getActiveTrip() {
   return state.trips[state.activeTripId];
@@ -60,6 +66,50 @@ function persist() {
   saveState(state);
   applyTheme();
   render();
+  if (currentUserId) {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => {
+      saveTripToCloud(currentUserId, getActiveTrip()).catch(() => {});
+    }, 2000);
+  }
+}
+
+function showAuthOverlay(sent = false) {
+  authOverlay.innerHTML = renderAuthOverlay(sent);
+  authOverlay.classList.add("visible");
+  authOverlay.setAttribute("aria-hidden", "false");
+}
+
+function hideAuthOverlay() {
+  authOverlay.classList.remove("visible");
+  authOverlay.setAttribute("aria-hidden", "true");
+}
+
+function updateAuthBtn() {
+  if (authBtn) authBtn.textContent = currentUserId ? "Sign out" : "Login";
+}
+
+async function loadCloudTrips() {
+  try {
+    const rows = await loadTripsFromCloud(currentUserId);
+    if (!rows.length) {
+      // First login — push local trips to cloud
+      for (const trip of Object.values(state.trips)) {
+        await saveTripToCloud(currentUserId, trip);
+      }
+      return;
+    }
+    // Cloud wins: merge into local state
+    for (const row of rows) {
+      state.trips[row.id] = createTripState({ ...row.data, id: row.id });
+    }
+    if (!state.trips[state.activeTripId]) {
+      state.activeTripId = Object.keys(state.trips)[0];
+    }
+    saveState(state);
+  } catch (e) {
+    console.warn("[sync] loadCloudTrips:", e.message);
+  }
 }
 
 function applyTheme() {
@@ -741,7 +791,77 @@ function registerServiceWorker() {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
-applyTheme();
-render();
-wireEvents();
-registerServiceWorker();
+function wireAuthEvents() {
+  authOverlay.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("auth-email")?.value?.trim();
+    if (!email) return;
+    const btn = e.target.querySelector("[type='submit']");
+    if (btn) { btn.disabled = true; btn.textContent = "กำลังส่ง..."; }
+    const error = await signInWithEmail(email);
+    if (error) {
+      showToast("ส่งไม่สำเร็จ: " + error.message);
+      if (btn) { btn.disabled = false; btn.textContent = "ส่ง Magic Link"; }
+    } else {
+      showAuthOverlay(true);
+    }
+  });
+
+  authOverlay.addEventListener("click", (e) => {
+    if (e.target.id === "auth-skip") {
+      localStorage.setItem("ll-auth-skipped", "1");
+      hideAuthOverlay();
+    }
+  });
+
+  if (authBtn) {
+    authBtn.addEventListener("click", async () => {
+      if (currentUserId) {
+        await signOut();
+        currentUserId = null;
+        updateAuthBtn();
+        showToast("ออกจากระบบแล้ว");
+      } else {
+        showAuthOverlay();
+      }
+    });
+  }
+}
+
+async function boot() {
+  applyTheme();
+
+  const session = await getSession();
+  if (session) {
+    currentUserId = session.user.id;
+    await loadCloudTrips();
+  }
+
+  render();
+  wireEvents();
+  wireAuthEvents();
+  registerServiceWorker();
+  updateAuthBtn();
+
+  if (!session && !localStorage.getItem("ll-auth-skipped")) {
+    showAuthOverlay();
+  }
+
+  supabase.auth.onAuthStateChange(async (event, newSession) => {
+    if (event === "SIGNED_IN" && newSession) {
+      currentUserId = newSession.user.id;
+      localStorage.removeItem("ll-auth-skipped");
+      await loadCloudTrips();
+      hideAuthOverlay();
+      updateAuthBtn();
+      render();
+      showToast("เข้าสู่ระบบสำเร็จ ✓");
+    }
+    if (event === "SIGNED_OUT") {
+      currentUserId = null;
+      updateAuthBtn();
+    }
+  });
+}
+
+boot();
