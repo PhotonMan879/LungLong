@@ -65,14 +65,6 @@ a {
   padding: 16px 0 40px;
 }
 
-/* When inside split-left, shell doesn't center — uses full width */
-.split-left.shell {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  box-sizing: border-box;
-}
-
 .topbar,
 .hero-strip,
 .panel,
@@ -1735,12 +1727,6 @@ html[data-theme="dark"] .rain-banner {
 @media (max-width: 1023px) {
   .map-pane {
     display: none !important;
-  }
-
-  .split-left.shell {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto !important;
   }
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "kansai-project-2-v7";
+const CACHE_NAME = "kansai-project-2-v8";
 const ASSETS = [
   "./",
   "./index.html",
