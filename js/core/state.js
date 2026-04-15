@@ -38,6 +38,7 @@ export function createTripState(overrides = {}, templateId = null) {
     packingCustom: overrides.packingCustom || [],
     routes: overrides.routes || template.defaultRoutes || [],
     placesList: overrides.placesList || [],
+    recommendedPlaces: overrides.recommendedPlaces || template.recommendedPlaces || [],
     createdAt: overrides.createdAt || new Date().toISOString()
   };
 }
@@ -60,7 +61,12 @@ export function loadState() {
     if (!saved) return createDefaultState();
 
     if (saved.trips) {
-      const trips = Object.fromEntries(Object.entries(saved.trips).map(([id, trip]) => [id, createTripState({ ...trip, id })]));
+      const trips = Object.fromEntries(Object.entries(saved.trips).map(([id, trip]) => {
+        // Migrate: if stored trip has no recommendedPlaces, let createTripState pull from template
+        const data = { ...trip, id };
+        if (!data.recommendedPlaces || data.recommendedPlaces.length === 0) delete data.recommendedPlaces;
+        return [id, createTripState(data)];
+      }));
       return {
         ...createDefaultState(),
         ...saved,
