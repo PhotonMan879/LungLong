@@ -300,7 +300,8 @@ button:hover {
 .metrics-grid,
 .backup-grid,
 .docs-grid,
-.budget-grid {
+.budget-grid,
+.assist-grid {
   display: grid;
   gap: 16px;
 }
@@ -313,7 +314,8 @@ button:hover {
 .grid-3,
 .metrics-grid,
 .backup-grid,
-.docs-grid {
+.docs-grid,
+.assist-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -323,7 +325,8 @@ button:hover {
 .budget-row,
 .backup-card,
 .script-card,
-.settings-card {
+.settings-card,
+.assist-card {
   border-radius: var(--radius-lg);
   padding: 18px;
 }
@@ -574,9 +577,25 @@ button:hover {
 
 .backup-card,
 .doc-card,
-.settings-card {
+.settings-card,
+.assist-card {
   display: grid;
   gap: 12px;
+}
+
+.assist-card {
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.assist-card-compact {
+  align-content: start;
+}
+
+.assist-jp {
+  font-size: 1rem;
+  line-height: 1.55;
+  font-weight: 700;
 }
 
 .topbar-actions .secondary-btn,

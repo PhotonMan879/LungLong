@@ -3,6 +3,7 @@ import { clearDocStore, dataUrlToBlob, deleteDocBlob, getDocBlob, putDocBlob, bl
 import { createDefaultState, createTripState, loadState, saveState } from "./core/state.js";
 import { downloadJson, mapsSearchUrl, openInNewTab, researchUrl, uid } from "./core/utils.js";
 import { renderDashboard } from "./views/dashboard.js";
+import { renderAssist } from "./views/assist.js";
 import { renderItinerary } from "./views/itinerary.js";
 import { renderBackup } from "./views/backup.js";
 import { renderDocs } from "./views/docs.js";
@@ -124,7 +125,7 @@ function render() {
     `<span class="badge">${trip.docs.length} docs local</span>`
   ].join("");
 
-  const views = { dashboard: renderDashboard, itinerary: renderItinerary, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
+  const views = { dashboard: renderDashboard, assist: renderAssist, itinerary: renderItinerary, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
   app.innerHTML = views[state.view]?.(state, trip) || renderDashboard(state, trip);
 }
 
