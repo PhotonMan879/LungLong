@@ -60,7 +60,7 @@ a {
 }
 
 .shell {
-  width: min(1200px, calc(100vw - 32px));
+  width: min(800px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 16px 0 40px;
 }
