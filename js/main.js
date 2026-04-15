@@ -1,4 +1,4 @@
-import { cloneDefaultTripTemplate } from "./data/trip-data.js";
+import { cloneDefaultTripTemplate, TRIP_TEMPLATES } from "./data/trip-data.js";
 import { clearDocStore, dataUrlToBlob, deleteDocBlob, getDocBlob, putDocBlob, blobToDataUrl } from "./core/storage.js";
 import { createDefaultState, createTripState, loadState, saveState } from "./core/state.js";
 import { downloadJson, mapsSearchUrl, openInNewTab, researchUrl, uid } from "./core/utils.js";
@@ -11,6 +11,10 @@ import { renderDocs } from "./views/docs.js";
 import { renderChecklist } from "./views/checklist.js";
 import { renderBudget } from "./views/budget.js";
 import { renderSettings } from "./views/settings.js";
+import { renderTemplatePicker } from "./views/template-picker.js";
+import { renderTransport } from "./views/transport.js";
+import { renderPlaces } from "./views/places.js";
+import { initMap, updateMapMarkers } from "./core/map.js";
 
 const app = document.getElementById("app");
 const searchInput = document.getElementById("global-search");
@@ -42,7 +46,11 @@ const modalUrlWrap = document.getElementById("modal-url-wrap");
 const modalTextWrap = document.getElementById("modal-text-wrap");
 
 let state = loadState();
+state.rainMode = false; // UI-only, not persisted
+state.placesFilter = "all"; // UI-only, not persisted
+state.movingPlaceId = null; // UI-only, not persisted
 let toastTimer = null;
+let dragSrcSpotId = null;
 
 function getActiveTrip() {
   return state.trips[state.activeTripId];
@@ -126,7 +134,21 @@ function render() {
     `<span class="badge">${trip.docs.length} docs local</span>`
   ].join("");
 
-  const views = { dashboard: renderDashboard, assist: renderAssist, prep: renderPrep, itinerary: renderItinerary, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
+  // Map logic
+  const mapPane = document.getElementById("map-pane");
+  if (mapPane) {
+    if (state.view === "itinerary" || state.view === "places") {
+      mapPane.setAttribute("aria-hidden", "false");
+      setTimeout(() => {
+        initMap();
+        updateMapMarkers(trip, state.view);
+      }, 50);
+    } else {
+      mapPane.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  const views = { dashboard: renderDashboard, assist: renderAssist, prep: renderPrep, itinerary: renderItinerary, transport: renderTransport, places: renderPlaces, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
   app.innerHTML = views[state.view]?.(state, trip) || renderDashboard(state, trip);
 }
 
@@ -150,18 +172,73 @@ function openCustomSpotModal(base = null) {
   });
 }
 
+function openTemplatePicker() {
+  // Step 1: show template card grid inside the modal shell
+  modalTitle.textContent = "สร้างทริปใหม่";
+  modalKicker.textContent = "เลือก template";
+  modalTypeInput.value = "template-picker";
+  modalTargetIdInput.value = "";
+
+  // Hide all standard fields and swap form body for the picker
+  [modalNameWrap, modalRegionWrap, modalCategoryWrap, modalTimeWrap, modalUrlWrap, modalTextWrap].forEach((el) => el.classList.add("hidden"));
+
+  // Inject template grid into the form area
+  let pickerEl = document.getElementById("template-picker-body");
+  if (!pickerEl) {
+    pickerEl = document.createElement("div");
+    pickerEl.id = "template-picker-body";
+    modalForm.insertBefore(pickerEl, modalForm.querySelector(".modal-actions"));
+  }
+  pickerEl.innerHTML = renderTemplatePicker();
+  pickerEl.style.display = "block";
+
+  // Change submit button to be hidden (user clicks a card instead)
+  const submitBtn = modalForm.querySelector("[type='submit']");
+  if (submitBtn) submitBtn.style.display = "none";
+
+  modalShell.classList.add("open");
+  modalShell.setAttribute("aria-hidden", "false");
+}
+
+function openTripFormModal(templateId) {
+  // Step 2: after picking a template, show the name form
+  const tpl = TRIP_TEMPLATES.find((t) => t.id === templateId) || TRIP_TEMPLATES[0];
+
+  // Hide picker
+  const pickerEl = document.getElementById("template-picker-body");
+  if (pickerEl) pickerEl.style.display = "none";
+
+  // Restore submit button
+  const submitBtn = modalForm.querySelector("[type='submit']");
+  if (submitBtn) submitBtn.style.display = "";
+
+  modalTitle.textContent = `${tpl.emoji} ${tpl.label}`;
+  modalKicker.textContent = "กรอกชื่อทริปใหม่";
+  modalTypeInput.value = "create-trip";
+  modalTargetIdInput.value = templateId;
+
+  setFieldVisibility(modalNameWrap, true);
+  setFieldVisibility(modalRegionWrap, false);
+  setFieldVisibility(modalCategoryWrap, false);
+  setFieldVisibility(modalTimeWrap, false);
+  setFieldVisibility(modalUrlWrap, false);
+  setFieldVisibility(modalTextWrap, true);
+
+  modalNameInput.value = tpl.data.info.title || tpl.label;
+  modalTextInput.value = `${tpl.data.info.window || ""}\n${tpl.data.info.base || ""}`;
+}
+
 function openTripModal(mode) {
   const trip = getActiveTrip();
-  const template = cloneDefaultTripTemplate();
   openModal({
     type: mode,
-    kicker: mode === "create-trip" ? "Create trip" : "Rename trip",
-    title: mode === "create-trip" ? "สร้างทริปใหม่" : "เปลี่ยนชื่อทริป",
+    kicker: "Rename trip",
+    title: "เปลี่ยนชื่อทริป",
     targetId: trip.id,
     fields: { name: true, region: false, category: false, time: false, url: false, text: true },
     values: {
-      name: mode === "create-trip" ? `${template.info.title} Copy` : trip.name,
-      text: mode === "create-trip" ? `${template.info.window}\n${template.info.base}` : `${trip.info.window}\n${trip.info.base}`
+      name: trip.name,
+      text: `${trip.info.window}\n${trip.info.base}`
     }
   });
 }
@@ -187,7 +264,9 @@ function saveTripFromModal() {
   const name = modalNameInput.value.trim();
   if (!name) return showToast("กรอกชื่อทริปก่อน");
   if (type === "create-trip") {
-    const trip = createTripState({ id: uid("trip"), name, info: { title: name } });
+    // modalTargetIdInput holds the chosen templateId in step-2
+    const templateId = modalTargetIdInput.value || null;
+    const trip = createTripState({ id: uid("trip"), name, info: { title: name } }, templateId);
     const [windowLine, baseLine] = modalTextInput.value.split("\n");
     if (windowLine?.trim()) trip.info.window = windowLine.trim();
     if (baseLine?.trim()) trip.info.base = baseLine.trim();
@@ -393,6 +472,32 @@ function handleModalSubmit(event) {
     persist();
     closeModal();
   }
+  if (type === "place-note") {
+    const trip = getActiveTrip();
+    const place = trip.placesList.find((p) => p.id === targetId);
+    if (place) { place.note = modalTextInput.value.trim(); persist(); }
+    closeModal();
+  }
+  if (type === "place-link") {
+    const url = modalUrlInput.value.trim();
+    if (!url) return showToast("วาง URL ก่อน");
+    const trip = getActiveTrip();
+    const place = trip.placesList.find((p) => p.id === targetId);
+    if (place) { place.links = [...(place.links || []), url]; persist(); }
+    closeModal();
+  }
+  if (type === "add-place") {
+    const name = modalNameInput.value.trim();
+    if (!name) return showToast("กรอกชื่อสถานที่ก่อน");
+    const trip = getActiveTrip();
+    trip.placesList.push({
+      id: uid("pl"), sourceId: null, name, category: "custom",
+      desc: "", note: modalTextInput.value.trim(), links: [],
+      visitStatus: "pending", estimatedTime: "", addedFrom: "custom"
+    });
+    persist();
+    closeModal();
+  }
 }
 
 function updateDocFileMeta(file) {
@@ -408,11 +513,31 @@ function wireEvents() {
   searchInput.addEventListener("input", (event) => { state.search = event.target.value; saveState(state); render(); });
   themeToggle.addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; persist(); });
   tripSelect.addEventListener("change", (event) => { state.activeTripId = event.target.value; saveState(state); render(); });
-  tripNewBtn.addEventListener("click", () => openTripModal("create-trip"));
+  tripNewBtn.addEventListener("click", () => openTemplatePicker());
   primaryNav.addEventListener("click", (event) => { const button = event.target.closest("[data-view]"); if (button) setView(button.dataset.view); });
   modalForm.addEventListener("submit", handleModalSubmit);
-  modalShell.addEventListener("click", (event) => { if (event.target.closest("[data-action='close-modal']")) closeModal(); });
-  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && modalShell.classList.contains("open")) closeModal(); });
+  modalShell.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-action]");
+    if (!target) return;
+    const action = target.dataset.action;
+    if (action === "close-modal") {
+      const pickerEl = document.getElementById("template-picker-body");
+      if (pickerEl) pickerEl.style.display = "none";
+      const submitBtn = modalForm.querySelector("[type='submit']");
+      if (submitBtn) submitBtn.style.display = "";
+      closeModal();
+    }
+    if (action === "pick-template") openTripFormModal(target.dataset.templateId);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modalShell.classList.contains("open")) {
+      const pickerEl = document.getElementById("template-picker-body");
+      if (pickerEl) pickerEl.style.display = "none";
+      const submitBtn = modalForm.querySelector("[type='submit']");
+      if (submitBtn) submitBtn.style.display = "";
+      closeModal();
+    }
+  });
 
   app.addEventListener("click", async (event) => {
     const target = event.target.closest("[data-action]");
@@ -445,7 +570,113 @@ function wireEvents() {
     if (action === "trigger-import") document.getElementById("import-json-input")?.click();
     if (action === "export-json") await exportBackup();
     if (action === "set-theme") { state.theme = target.dataset.theme; persist(); }
-    if (action === "create-trip") openTripModal("create-trip");
+    if (action === "toggle-rain-mode") { state.rainMode = !state.rainMode; render(); }
+    if (action === "set-places-filter") { state.placesFilter = target.dataset.cat; render(); }
+    // Places actions
+    if (action === "add-rec-place") {
+      const trip = getActiveTrip();
+      const rec = (trip.recommendedPlaces || []).find((r) => r.id === target.dataset.recId);
+      if (rec && !trip.placesList.some((p) => p.sourceId === rec.id)) {
+        trip.placesList.push({
+          id: uid("pl"), sourceId: rec.id, name: rec.name, category: rec.category,
+          desc: rec.desc || "", note: "", links: [], visitStatus: "pending",
+          estimatedTime: rec.estimatedTime || "", addedFrom: "recommended"
+        });
+        persist();
+      }
+    }
+    if (action === "remove-place") {
+      const trip = getActiveTrip();
+      trip.placesList = trip.placesList.filter((p) => p.id !== target.dataset.placeId);
+      persist();
+    }
+    if (action === "cycle-place-status") {
+      const trip = getActiveTrip();
+      const place = trip.placesList.find((p) => p.id === target.dataset.placeId);
+      if (place) {
+        const cycle = { pending: "visited", visited: "skipped", skipped: "pending" };
+        place.visitStatus = cycle[place.visitStatus] || "pending";
+        persist();
+      }
+    }
+    if (action === "toggle-move-to-day") {
+      state.movingPlaceId = state.movingPlaceId === target.dataset.placeId ? null : target.dataset.placeId;
+      render();
+    }
+    if (action === "move-to-day") {
+      const trip = getActiveTrip();
+      const place = trip.placesList.find((p) => p.id === target.dataset.placeId);
+      const dayId = Number(target.dataset.day);
+      const day = trip.days.find((d) => d.id === dayId);
+      if (day && place) {
+        day.activities.push({
+          id: uid("act"),
+          time: place.estimatedTime || "flex",
+          icon: "📍",
+          title: place.name,
+          desc: place.desc || place.note || "",
+          tags: [place.category || "custom"]
+        });
+        showToast(`เพิ่ม ${place.name} ลง Day ${dayId} แล้ว`);
+        state.movingPlaceId = null;
+        persist();
+      }
+    }
+    if (action === "inline-add-itinerary") {
+      const trip = getActiveTrip();
+      const rec = (trip.recommendedPlaces || []).find((r) => r.id === target.dataset.recId);
+      const day = trip.days.find((d) => String(d.id) === String(target.dataset.dayId));
+      if (rec && day) {
+        day.activities.push({
+          id: uid("act"),
+          time: rec.estimatedTime || "flex",
+          icon: "📍",
+          title: rec.name,
+          desc: rec.desc || "",
+          tags: [rec.category || "custom"]
+        });
+        showToast(`เพิ่ม ${rec.name} ลง Day ${day.id} แล้ว`);
+        persist();
+      }
+    }
+    if (action === "edit-place-note") {
+      const trip = getActiveTrip();
+      const place = trip.placesList.find((p) => p.id === target.dataset.placeId);
+      if (!place) return;
+      openModal({
+        type: "place-note", kicker: "Note", title: place.name,
+        targetId: place.id,
+        fields: { name: false, region: false, category: false, time: false, url: false, text: true },
+        values: { text: place.note || "" }
+      });
+    }
+    if (action === "add-place-link") {
+      const trip = getActiveTrip();
+      const place = trip.placesList.find((p) => p.id === target.dataset.placeId);
+      if (!place) return;
+      openModal({
+        type: "place-link", kicker: "Link", title: place.name,
+        targetId: place.id,
+        fields: { name: false, region: false, category: false, time: false, url: true, text: false },
+        values: { url: "" }
+      });
+    }
+    if (action === "remove-place-link") {
+      const trip = getActiveTrip();
+      const place = trip.placesList.find((p) => p.id === target.dataset.placeId);
+      const idx = Number(target.dataset.linkIdx);
+      if (place) { place.links.splice(idx, 1); persist(); }
+    }
+    if (action === "open-add-place-modal") {
+      openModal({
+        type: "add-place", kicker: "เพิ่มสถานที่", title: "สถานที่ใหม่",
+        targetId: "",
+        fields: { name: true, region: false, category: false, time: false, url: false, text: true },
+        values: { name: "", text: "" }
+      });
+    }
+    if (action === "pick-template") openTripFormModal(target.dataset.templateId);
+    if (action === "create-trip") openTemplatePicker();
     if (action === "rename-trip") openTripModal("rename-trip");
     if (action === "save-trip-profile") saveTripProfileFromSettings();
     if (action === "delete-trip") {
@@ -464,6 +695,45 @@ function wireEvents() {
       try { await importBackup(target.files?.[0]); } catch (error) { console.error(error); showToast("import ไม่สำเร็จ"); } finally { target.value = ""; }
     }
     if (target.id === "doc-file") updateDocFileMeta(target.files?.[0] || null);
+  });
+
+  // Drag-to-reorder custom spots
+  app.addEventListener("dragstart", (event) => {
+    const card = event.target.closest("[data-action='drag-spot']");
+    if (!card) return;
+    dragSrcSpotId = card.dataset.spotId;
+    card.classList.add("dragging");
+    event.dataTransfer.effectAllowed = "move";
+  });
+
+  app.addEventListener("dragend", (event) => {
+    const card = event.target.closest("[data-action='drag-spot']");
+    if (card) card.classList.remove("dragging");
+    document.querySelectorAll(".backup-card.drag-over").forEach((el) => el.classList.remove("drag-over"));
+  });
+
+  app.addEventListener("dragover", (event) => {
+    const card = event.target.closest("[data-action='drag-spot']");
+    if (!card || card.dataset.spotId === dragSrcSpotId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    document.querySelectorAll(".backup-card.drag-over").forEach((el) => el.classList.remove("drag-over"));
+    card.classList.add("drag-over");
+  });
+
+  app.addEventListener("drop", (event) => {
+    const card = event.target.closest("[data-action='drag-spot']");
+    if (!card || !dragSrcSpotId || card.dataset.spotId === dragSrcSpotId) return;
+    event.preventDefault();
+    const trip = getActiveTrip();
+    const spots = trip.customSpots;
+    const fromIdx = spots.findIndex((s) => s.id === dragSrcSpotId);
+    const toIdx = spots.findIndex((s) => s.id === card.dataset.spotId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = spots.splice(fromIdx, 1);
+    spots.splice(toIdx, 0, moved);
+    dragSrcSpotId = null;
+    persist();
   });
 }
 

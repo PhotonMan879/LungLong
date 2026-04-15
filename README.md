@@ -12,6 +12,9 @@
 - `Backup spots` + `custom spots`
 - `Multi-trip workspace`
 - `Prep / packing mode` สำหรับช่วงก่อนเดินทาง
+- `Desktop Split-pane Map` แผนที่ฝั่งขวาสำหรับหน้าจอขนาดใหญ่ (Leaflet)
+- `Inline Itinerary Builder` เพิ่มสถานที่ลงแผนได้โดยตรงผ่านแถบด้านล่างตารางวัน
+- `Embed Video Player` รองรับการฝังคลิป YouTube ดูคลิปรีวิวเจ๋งๆ จากในแอป
 - ยังเป็น `Vanilla JS` และไม่มี build step
 
 ## วิธีเปิดใช้งาน

@@ -36,14 +36,16 @@ npm run check
 - `Mark done` ได้
 - เพิ่ม note ได้
 - เพิ่ม link ได้
-- YouTube link มี preview
-- ลบ link ได้
+- YouTube link โชว์ iframe 16:9 และกดเล่นวิดีโอได้
+- ลบ link/วิดีโอ ได้
+- **Inline Itinerary Builder:** ดู Recommended Spots ใต้วัน และกด `+ ยัดใส่ลงแผน` ได้ทันที
 
 ### 3. Backup spots
 
 - เพิ่ม custom spot ได้
-- shortlist backup spot ได้
-- ลบ custom spot ได้
+- ลบ custom spot ได้ / ลบสถานที่ได้แบบสมบูรณ์
+- เปลี่ยนประเภทและหมวดหมู่สถานที่
+- **Map Desktop:** เลื่อนแผนที่ฝั่งขวา (ในจอใหญ่), Pins ตาม lat/lng ถูกสี
 
 ### 4. Docs
 

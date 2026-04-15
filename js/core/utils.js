@@ -126,7 +126,8 @@ export function getLinkPreview(url) {
         badgeClass: "link-badge-youtube",
         icon: "▶",
         thumbnail: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
-        displayUrl: host
+        displayUrl: host,
+        videoId: youtubeId
       };
     }
 

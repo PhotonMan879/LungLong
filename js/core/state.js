@@ -1,4 +1,4 @@
-import { cloneDefaultTripTemplate } from "../data/trip-data.js";
+import { cloneDefaultTripTemplate, cloneTemplate } from "../data/trip-data.js";
 import { flattenActivities } from "./utils.js";
 
 const STORAGE_KEY = "kansai-project-2-state";
@@ -10,8 +10,8 @@ function createActivityState(days) {
   }, {});
 }
 
-export function createTripState(overrides = {}) {
-  const template = cloneDefaultTripTemplate();
+export function createTripState(overrides = {}, templateId = null) {
+  const template = templateId ? cloneTemplate(templateId) : cloneDefaultTripTemplate();
   const days = overrides.days || template.days;
   const defaults = createActivityState(days);
   return {
@@ -36,6 +36,8 @@ export function createTripState(overrides = {}) {
     defaultPacking: overrides.defaultPacking || template.defaultPacking,
     packingState: overrides.packingState || {},
     packingCustom: overrides.packingCustom || [],
+    routes: overrides.routes || template.defaultRoutes || [],
+    placesList: overrides.placesList || [],
     createdAt: overrides.createdAt || new Date().toISOString()
   };
 }

@@ -42,20 +42,22 @@
 | หมวด | งาน | สถานะ | หมายเหตุ |
 |---|---|---|---|
 | Usefulness | Weather / rain fallback | Not yet | ยังไม่มี weather logic |
-| Usefulness | Live route / ETA integration | Not yet | ตอนนี้เป็น shortcut ไป Maps |
-| UX polish | Embed clip / player | Not yet | ยังไม่ฝัง video ใน app |
-| UX polish | Reorder custom places / activities | Not yet | ยังไม่มี drag reorder |
-| Product | Trip templates หลายแบบ | Not yet | ยังมี default template เดียว |
+| Usefulness | Live route / ETA integration | Done | Transport tab — route cards ต่อวัน |
+| UX polish | Embed clip / player | Done | วิดีโอ YouTube iframe 16:9 |
+| UX polish | Reorder custom places / activities | Done | HTML5 drag-to-reorder custom spots |
+| UX polish | Desktop Map / Split Pane UX | Done | ระบบแผงควบคุมแผนที่สำหรับจอใหญ่แบบ Wanderlog |
+| Product | Trip templates หลายแบบ | Done | Kansai / Onsen / Food & Street / Blank |
 | Product | Share public read-only link | Not yet | ยังไม่มี backend/share flow |
 | Product | Collaborative mode | Not yet | ยังไม่มี |
 | Product | Auth / sync ข้ามอุปกรณ์ | Not yet | ยัง local-first |
+| Resilience | Weather / rain fallback | Done | Rain mode toggle ใน Backup Spots |
+| Product | Places Shortlist | Done | wishlist + recommended + filter + note/link/status |
 | Quality | Lint / formatter | Not yet | ยังไม่ได้ตั้ง |
 | Quality | Vite / build tooling | Not yet | ยังเป็น multi-file vanilla |
 
 ## ลำดับที่ควรทำต่อ
 
-1. `Trip templates หลายแบบ`
-2. `Weather / rain fallback`
-3. `Live route / ETA helper`
-4. `Reorder custom places / activities`
-5. `Auth / sync`
+1. `Share public read-only link`
+2. `Auth / sync`
+3. `Collaborative mode`
+4. `Vite / build tooling`

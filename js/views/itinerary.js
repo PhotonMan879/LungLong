@@ -140,12 +140,56 @@ export function renderItinerary(state, trip) {
             : `<div class="empty-state">ไม่มีรายการที่ตรงกับ filter หรือคำค้นหาในวันนี้</div>`
         }
       </div>
+
+      ${(() => {
+        const recPlaces = (trip.recommendedPlaces || []);
+        const dayActIds = new Set(day.activities.map((a) => a.title));
+        const availableRec = recPlaces.filter((r) => !dayActIds.has(r.name));
+
+        if (!availableRec.length) return "";
+
+        return `
+          <div class="inline-add-place">
+            <div class="inline-add-head">
+              <span style="font-size:1.2rem;">📍</span> เพิ่มสถานที่ท่องเที่ยวด่วน (Day ${day.id})
+            </div>
+            <div class="inline-rec-scroll">
+              ${availableRec.map(r => `
+                <div class="inline-rec-card">
+                  <div class="place-rec-name" title="${escapeHtml(r.name)}"><strong>${escapeHtml(r.name)}</strong></div>
+                  <div style="font-size:0.8rem;" class="muted">${escapeHtml(r.estimatedTime || "")} • ${escapeHtml(r.category)}</div>
+                  <button class="secondary-btn" style="padding:6px; margin-top:4px; border:1px solid var(--accent); color:var(--accent);" type="button" data-action="inline-add-itinerary" data-day-id="${day.id}" data-rec-id="${r.id}">
+                    + ยัดใส่ลงแผน
+                  </button>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      })()}
+
     </section>
   `;
 }
 
 function renderLinkCard(link, activityId, index) {
   const preview = getLinkPreview(link);
+
+  if (preview.type === "youtube" && preview.videoId) {
+    return `
+      <div class="video-embed-wrapper" style="margin-top:12px;">
+        <iframe src="https://www.youtube.com/embed/${preview.videoId}?rel=0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+      </div>
+      <div class="embed-toolbar">
+        <div class="muted">► YouTube Video</div>
+        <div class="link-actions">
+          <button class="tiny-btn" type="button" data-action="open-link" data-url="${escapeHtml(link)}">เปิดดูแยก</button>
+          <button class="tiny-btn" type="button" data-action="remove-link" data-activity-id="${activityId}" data-link-index="${index}">ลบวิดีโอ</button>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="link-item link-item-rich">
       ${

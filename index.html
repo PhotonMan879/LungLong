@@ -7,7 +7,9 @@
   <meta name="description" content="Project 2: Kansai Trip App เวอร์ชัน modular สำหรับ hackathon">
   <meta name="theme-color" content="#b8342f">
   <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <link rel="stylesheet" href="./styles.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
   <div class="shell">
@@ -44,6 +46,8 @@
       <button class="nav-tab" data-view="assist" type="button">Assist</button>
       <button class="nav-tab" data-view="prep" type="button">Prep</button>
       <button class="nav-tab" data-view="itinerary" type="button">Itinerary</button>
+      <button class="nav-tab" data-view="transport" type="button">Transport</button>
+      <button class="nav-tab" data-view="places" type="button">Places</button>
       <button class="nav-tab" data-view="backup" type="button">Backup Spots</button>
       <button class="nav-tab" data-view="docs" type="button">Docs</button>
       <button class="nav-tab" data-view="checklist" type="button">Checklist</button>
@@ -51,7 +55,12 @@
       <button class="nav-tab" data-view="settings" type="button">Settings</button>
     </nav>
 
-    <main id="app" class="app-shell" aria-live="polite"></main>
+    <div class="split-pane-container">
+      <main id="app" class="app-shell" aria-live="polite"></main>
+      <aside id="map-pane" class="map-pane" aria-hidden="true">
+        <div id="map-container" class="map-container"></div>
+      </aside>
+    </div>
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

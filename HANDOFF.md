@@ -9,8 +9,9 @@
 ตอนนี้แอปใช้งานได้ในระดับ demo ที่ค่อนข้างครบแล้ว
 
 - เปิดทริปหลายอันทับกันไม่ได้ เพราะแยก `activeTripId`
-- ใช้บนมือถือได้ดีขึ้นกว่าของเดิม
-- มีทั้ง planner, docs vault, assist phrases, และ prep mode
+- ใช้บนมือถือได้ดีขึ้นกว่าของเดิม และบน Desktop มี Split-pane UI พร้อม Map
+- มีทั้ง planner, docs vault, assist phrases, prep mode และระบบ Shortlist (Places)
+- รองรับการฝังวิดีโอ (YouTube)
 - ยังไม่มี backend
 
 ## ไฟล์ที่ควรรู้ก่อนแก้
@@ -50,27 +51,21 @@
 
 ## งานถัดไปที่แนะนำ
 
-### 1. Trip templates
+### 1. Share public read-only link
 
-ทำ template หลายแบบ เช่น
+ทำระบบสร้างแชร์ลิงก์เพื่อให้แชร์แพลนให้เพื่อนผ่านวงนอก โดยไม่ต้อง import JSON
 
-- Japan city trip
-- onsen trip
-- food trip
+### 2. Live Route / Weather
 
-เหมาะมากเพราะตอนนี้มี multi-trip แล้ว
+ยกระดับ live route ให้สามารถดึง ETA / Transit Time API ของจริงได้ถ้าเป็นไปได้ หรือมี Weather API
 
-### 2. Weather / rain fallback
+### 3. Sync layer
 
-ให้แอปช่วยบอกว่าถ้าฝนตกควรโยกไป backup spots ไหน
+ถ้าจะใช้หลายเครื่อง ต้องเริ่มต่อ auth / cloud sync (e.g. Supabase, Firebase)
 
-### 3. Transport helper
+### 4. Vite / JS Build Tooling
 
-เพิ่ม helper สำหรับ route, transfer tips, หรือ ETA แบบง่ายก่อนจะไปถึง integration จริง
-
-### 4. Sync layer
-
-ถ้าจะใช้หลายเครื่อง ค่อยต่อ auth / cloud sync
+Project เริ่มมี UI components ซ้ำเยอะ การย้ายไปใช้ Vite + Component framework แบบง่ายจะเริ่มคุ้มค่าขึ้น
 
 ## ข้อควรระวัง
 
