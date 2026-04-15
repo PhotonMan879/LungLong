@@ -18,13 +18,13 @@ export function initMap() {
   if (window.mapInstance) return;
   const container = document.getElementById("map-container");
   if (!container || !window.L) return;
-
+  // Clear any leftover Leaflet state on the container
+  container._leaflet_id = null;
   window.mapInstance = L.map("map-container", { zoomControl: false }).setView([34.6937, 135.5023], 10);
   L.control.zoom({ position: 'bottomright' }).addTo(window.mapInstance);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; OSM &copy; CARTO',
-    subdomains: "abcd",
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri',
     maxZoom: 20
   }).addTo(window.mapInstance);
 

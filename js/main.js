@@ -81,8 +81,8 @@ function initMiniMaps() {
       zoomControl: false, dragging: false, touchZoom: false,
       doubleClickZoom: false, scrollWheelZoom: false, attributionControl: false
     }).setView([lat, lng], 15);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-      attribution: "© OpenStreetMap © CARTO", maxZoom: 19
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+      attribution: "Tiles © Esri", maxZoom: 19
     }).addTo(map);
     L.marker([lat, lng]).addTo(map);
     miniMapInstances.set(el.id, map);
