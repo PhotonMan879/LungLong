@@ -402,6 +402,31 @@ button:hover {
   gap: 14px;
 }
 
+.timeline-sections {
+  gap: 18px;
+}
+
+.timeline-section {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(127, 114, 105, 0.16);
+  background: rgba(127, 114, 105, 0.05);
+}
+
+.timeline-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.timeline-section-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .activity-card {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);

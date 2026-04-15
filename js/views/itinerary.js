@@ -5,6 +5,63 @@ function matchesFilter(activityState, filter) {
   return filter === "done" ? activityState.checked : !activityState.checked;
 }
 
+function getTimeBucket(time) {
+  const hour = Number.parseInt(String(time).split(":")[0], 10);
+  if (Number.isNaN(hour)) return "flex";
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
+
+function getBucketMeta(bucket) {
+  return {
+    morning: { label: "Morning", emoji: "🌤", hint: "ก่อนเที่ยง / เริ่มวัน" },
+    afternoon: { label: "Afternoon", emoji: "☀️", hint: "เที่ยงถึงบ่าย" },
+    evening: { label: "Evening", emoji: "🌙", hint: "เย็นถึงค่ำ" },
+    flex: { label: "Flexible", emoji: "🗂", hint: "เวลาไม่ชัดเจน" }
+  }[bucket];
+}
+
+function renderActivityCard(activity, trip) {
+  const activityState = trip.activities[activity.id] || { checked: false, note: "", links: [] };
+  return `
+    <article class="activity-card ${activityState.checked ? "checked" : ""}">
+      <div class="activity-top">
+        <div class="activity-title">
+          <div>${activity.icon}</div>
+          <div>
+            <div class="day-title">${escapeHtml(activity.title)}</div>
+            <p class="muted">${escapeHtml(activity.desc)}</p>
+            <div class="chip-row" style="margin-top:8px;">${joinTags(activity.tags)}</div>
+          </div>
+        </div>
+        <div class="time-pill">${activity.time}</div>
+      </div>
+      ${
+        activityState.note
+          ? `<div class="note-box" style="margin-top:12px;"><strong>Note:</strong> ${escapeHtml(activityState.note)}</div>`
+          : ""
+      }
+      ${
+        activityState.links?.length
+          ? `<div class="link-list" style="margin-top:12px;">
+              ${activityState.links.map((link, index) => renderLinkCard(link, activity.id, index)).join("")}
+            </div>`
+          : ""
+      }
+      <div class="action-row" style="margin-top:12px;">
+        <button class="tiny-btn" type="button" data-action="toggle-activity" data-activity-id="${activity.id}">
+          ${activityState.checked ? "เอาออกจาก done" : "Mark done"}
+        </button>
+        <button class="tiny-btn" type="button" data-action="edit-note" data-activity-id="${activity.id}">Edit note</button>
+        <button class="tiny-btn" type="button" data-action="add-link" data-activity-id="${activity.id}">Add link</button>
+        <button class="tiny-btn" type="button" data-action="open-maps" data-query="${escapeHtml(activity.title)} Japan">Maps</button>
+        <button class="tiny-btn" type="button" data-action="open-research" data-query="${escapeHtml(activity.title)}">Research</button>
+      </div>
+    </article>
+  `;
+}
+
 export function renderItinerary(state, trip) {
   const day = trip.days.find((item) => item.id === trip.dayId) || trip.days[0];
   const activities = day.activities.filter((activity) => {
@@ -56,49 +113,27 @@ export function renderItinerary(state, trip) {
           <p class="muted">${day.theme}</p>
         </div>
       </div>
-      <div class="activity-stack" style="margin-top:16px;">
+      <div class="activity-stack timeline-sections" style="margin-top:16px;">
         ${
           activities.length
-            ? activities
-                .map((activity) => {
-                  const activityState = trip.activities[activity.id] || { checked: false, note: "", links: [] };
+            ? ["morning", "afternoon", "evening", "flex"]
+                .map((bucket) => {
+                  const bucketActivities = activities.filter((activity) => getTimeBucket(activity.time) === bucket);
+                  if (!bucketActivities.length) return "";
+                  const meta = getBucketMeta(bucket);
                   return `
-                    <article class="activity-card ${activityState.checked ? "checked" : ""}">
-                      <div class="activity-top">
-                        <div class="activity-title">
-                          <div>${activity.icon}</div>
-                          <div>
-                            <div class="day-title">${escapeHtml(activity.title)}</div>
-                            <p class="muted">${escapeHtml(activity.desc)}</p>
-                            <div class="chip-row" style="margin-top:8px;">${joinTags(activity.tags)}</div>
-                          </div>
+                    <section class="timeline-section">
+                      <div class="timeline-section-head">
+                        <div>
+                          <p class="tiny">${meta.hint}</p>
+                          <h4 class="timeline-section-title">${meta.emoji} ${meta.label}</h4>
                         </div>
-                        <div class="time-pill">${activity.time}</div>
+                        <span class="meta-chip">${bucketActivities.length} stops</span>
                       </div>
-                      ${
-                        activityState.note
-                          ? `<div class="note-box" style="margin-top:12px;"><strong>Note:</strong> ${escapeHtml(activityState.note)}</div>`
-                          : ""
-                      }
-                      ${
-                        activityState.links?.length
-                          ? `<div class="link-list" style="margin-top:12px;">
-                              ${activityState.links
-                                .map((link, index) => renderLinkCard(link, activity.id, index))
-                                .join("")}
-                            </div>`
-                          : ""
-                      }
-                      <div class="action-row" style="margin-top:12px;">
-                        <button class="tiny-btn" type="button" data-action="toggle-activity" data-activity-id="${activity.id}">
-                          ${activityState.checked ? "เอาออกจาก done" : "Mark done"}
-                        </button>
-                        <button class="tiny-btn" type="button" data-action="edit-note" data-activity-id="${activity.id}">Edit note</button>
-                        <button class="tiny-btn" type="button" data-action="add-link" data-activity-id="${activity.id}">Add link</button>
-                        <button class="tiny-btn" type="button" data-action="open-maps" data-query="${escapeHtml(activity.title)} Japan">Maps</button>
-                        <button class="tiny-btn" type="button" data-action="open-research" data-query="${escapeHtml(activity.title)}">Research</button>
+                      <div class="activity-stack">
+                        ${bucketActivities.map((activity) => renderActivityCard(activity, trip)).join("")}
                       </div>
-                    </article>
+                    </section>
                   `;
                 })
                 .join("")
