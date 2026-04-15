@@ -1,8 +1,7 @@
-import { DEFAULT_CHECKLIST, JAPANESE_SCRIPTS } from "../data/trip-data.js";
 import { escapeHtml, groupBy } from "../core/utils.js";
 
-export function renderChecklist(state) {
-  const merged = [...DEFAULT_CHECKLIST, ...state.checklistCustom];
+export function renderChecklist(state, trip) {
+  const merged = [...trip.defaultChecklist, ...trip.checklistCustom];
   const grouped = groupBy(merged, (item) => item.cat);
 
   return `
@@ -27,8 +26,8 @@ export function renderChecklist(state) {
                   <div class="checklist-stack">
                     ${items
                       .map((item) => {
-                        const done = Boolean(state.checklistState[item.id]);
-                        const isCustom = state.checklistCustom.some((custom) => custom.id === item.id);
+                        const done = Boolean(trip.checklistState[item.id]);
+                        const isCustom = trip.checklistCustom.some((custom) => custom.id === item.id);
                         return `
                           <article class="checklist-item">
                             <button class="check-toggle ${done ? "done" : ""}" type="button" data-action="toggle-checklist" data-checklist-id="${item.id}">
@@ -54,7 +53,7 @@ export function renderChecklist(state) {
         <p class="tiny">Useful phrases</p>
         <h2 class="section-title">Japanese scripts</h2>
         <div class="scripts-stack" style="margin-top:16px;">
-          ${JAPANESE_SCRIPTS.map(
+          ${trip.japaneseScripts.map(
             (section) => `
               <section>
                 <p class="tiny">${escapeHtml(section.cat)}</p>

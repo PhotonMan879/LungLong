@@ -1,5 +1,3 @@
-import { DAYS, TRIP_INFO } from "../data/trip-data.js";
-
 export function currency(value) {
   return `¥${Number(value || 0).toLocaleString("en-US")}`;
 }
@@ -11,13 +9,6 @@ export function escapeHtml(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-}
-
-export function slugify(text) {
-  return String(text || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }
 
 export function uid(prefix = "id") {
@@ -32,8 +23,8 @@ export function researchUrl(query) {
   return `https://www.google.com/search?q=${encodeURIComponent(`${query} japan travel tips`)}`;
 }
 
-export function flattenActivities() {
-  return DAYS.flatMap((day) =>
+export function flattenActivities(days = []) {
+  return days.flatMap((day) =>
     day.activities.map((activity) => ({
       ...activity,
       dayId: day.id,
@@ -44,34 +35,26 @@ export function flattenActivities() {
   );
 }
 
-export function getTripDayStatus(state) {
+export function getTripDayStatus(trip) {
   const today = new Date();
-  const start = new Date(TRIP_INFO.startDate);
+  const start = new Date(trip.info.startDate);
   const diff = Math.floor((today.setHours(0, 0, 0, 0) - start.setHours(0, 0, 0, 0)) / 86400000);
-  if (diff >= 0 && diff < DAYS.length) {
-    return DAYS[diff];
+  if (diff >= 0 && diff < trip.days.length) {
+    return trip.days[diff];
   }
 
-  return DAYS.find((day) => day.activities.some((activity) => !state.activities?.[activity.id]?.checked)) || DAYS[0];
+  return trip.days.find((day) => day.activities.some((activity) => !trip.activities?.[activity.id]?.checked)) || trip.days[0];
 }
 
-export function completionForDay(day, state) {
-  const done = day.activities.filter((activity) => state.activities?.[activity.id]?.checked).length;
-  return {
-    done,
-    total: day.activities.length,
-    pct: day.activities.length ? Math.round((done / day.activities.length) * 100) : 0
-  };
+export function completionForDay(day, trip) {
+  const done = day.activities.filter((activity) => trip.activities?.[activity.id]?.checked).length;
+  return { done, total: day.activities.length, pct: day.activities.length ? Math.round((done / day.activities.length) * 100) : 0 };
 }
 
-export function totalCompletion(state) {
-  const all = flattenActivities();
-  const done = all.filter((activity) => state.activities?.[activity.id]?.checked).length;
-  return {
-    done,
-    total: all.length,
-    pct: all.length ? Math.round((done / all.length) * 100) : 0
-  };
+export function totalCompletion(trip) {
+  const all = flattenActivities(trip.days);
+  const done = all.filter((activity) => trip.activities?.[activity.id]?.checked).length;
+  return { done, total: all.length, pct: all.length ? Math.round((done / all.length) * 100) : 0 };
 }
 
 export function downloadJson(filename, payload) {

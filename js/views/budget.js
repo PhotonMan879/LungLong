@@ -1,9 +1,8 @@
-import { DAYS } from "../data/trip-data.js";
 import { currency } from "../core/utils.js";
 
-export function renderBudget(state) {
-  const planned = Object.values(state.budgetPlan).reduce((sum, value) => sum + Number(value || 0), 0);
-  const actual = Object.values(state.budgetActual).reduce((sum, value) => sum + Number(value || 0), 0);
+export function renderBudget(state, trip) {
+  const planned = Object.values(trip.budgetPlan).reduce((sum, value) => sum + Number(value || 0), 0);
+  const actual = Object.values(trip.budgetActual).reduce((sum, value) => sum + Number(value || 0), 0);
   const diff = actual - planned;
 
   return `
@@ -31,9 +30,9 @@ export function renderBudget(state) {
         </div>
       </div>
       <div class="budget-grid" style="margin-top:16px;">
-        ${DAYS.map((day) => {
-          const plan = Number(state.budgetPlan[day.id] || 0);
-          const spent = Number(state.budgetActual[day.id] || 0);
+        ${trip.days.map((day) => {
+          const plan = Number(trip.budgetPlan[day.id] || 0);
+          const spent = Number(trip.budgetActual[day.id] || 0);
           return `
             <article class="budget-row">
               <div class="budget-row-head">

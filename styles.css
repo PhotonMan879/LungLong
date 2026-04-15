@@ -136,6 +136,10 @@ a {
   color: var(--muted);
 }
 
+.trip-chip {
+  min-width: 220px;
+}
+
 .search-chip input,
 .field,
 .budget-input,
@@ -462,6 +466,11 @@ button:hover {
 .settings-card {
   display: grid;
   gap: 12px;
+}
+
+.topbar-actions .secondary-btn,
+.topbar-actions .ghost-btn {
+  align-self: end;
 }
 
 .doc-preview {

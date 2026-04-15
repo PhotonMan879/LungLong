@@ -18,10 +18,15 @@
         <p class="subtle">เวอร์ชันใหม่แบบหลายไฟล์, local-first, และเน้นใช้ระหว่างเดินทางจริง</p>
       </div>
       <div class="topbar-actions">
+        <label class="search-chip trip-chip">
+          <span>ทริปที่กำลังใช้งาน</span>
+          <select id="trip-select" class="field"></select>
+        </label>
         <label class="search-chip">
           <span>ค้นหา</span>
           <input id="global-search" type="search" placeholder="สถานที่, เมือง, ของกิน, pass...">
         </label>
+        <button id="trip-new-btn" class="secondary-btn" type="button">New Trip</button>
         <button id="theme-toggle" class="ghost-btn" type="button">Dark</button>
       </div>
     </header>

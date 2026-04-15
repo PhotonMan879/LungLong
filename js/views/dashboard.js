@@ -1,21 +1,20 @@
-import { DAYS, TRIP_INFO } from "../data/trip-data.js";
 import { completionForDay, currency, getTripDayStatus, totalCompletion } from "../core/utils.js";
 
-export function renderDashboard(state) {
-  const overall = totalCompletion(state);
-  const focusDay = getTripDayStatus(state);
-  const focusStats = completionForDay(focusDay, state);
-  const docsCount = state.docs.length;
-  const customCount = state.customSpots.length;
-  const planTotal = Object.values(state.budgetPlan).reduce((sum, value) => sum + Number(value || 0), 0);
-  const actualTotal = Object.values(state.budgetActual).reduce((sum, value) => sum + Number(value || 0), 0);
+export function renderDashboard(state, trip) {
+  const overall = totalCompletion(trip);
+  const focusDay = getTripDayStatus(trip);
+  const focusStats = completionForDay(focusDay, trip);
+  const docsCount = trip.docs.length;
+  const customCount = trip.customSpots.length;
+  const planTotal = Object.values(trip.budgetPlan).reduce((sum, value) => sum + Number(value || 0), 0);
+  const actualTotal = Object.values(trip.budgetActual).reduce((sum, value) => sum + Number(value || 0), 0);
 
   return `
     <section class="metrics-grid">
       <article class="metric-card">
         <p class="tiny">Trip window</p>
-        <div class="metric-value">${TRIP_INFO.window}</div>
-        <p class="muted">${TRIP_INFO.flightOut} / ${TRIP_INFO.flightBack}</p>
+        <div class="metric-value">${trip.info.window}</div>
+        <p class="muted">${trip.info.flightOut} / ${trip.info.flightBack}</p>
       </article>
       <article class="metric-card">
         <p class="tiny">Overall progress</p>
@@ -46,13 +45,13 @@ export function renderDashboard(state) {
         <div class="meta-row">
           <span class="meta-chip">ทำแล้ว ${focusStats.done}/${focusStats.total}</span>
           <span class="meta-chip">${focusDay.city}</span>
-          <span class="meta-chip">${TRIP_INFO.base}</span>
+          <span class="meta-chip">${trip.info.base}</span>
         </div>
         <div class="activity-stack" style="margin-top:14px;">
           ${focusDay.activities
             .slice(0, 4)
             .map((activity) => {
-              const activityState = state.activities[activity.id] || {};
+              const activityState = trip.activities[activity.id] || {};
               return `
                 <div class="activity-card ${activityState.checked ? "checked" : ""}">
                   <div class="activity-top">
@@ -93,7 +92,7 @@ export function renderDashboard(state) {
           </article>
           <article class="metric-card">
             <p class="tiny">Rail pass days</p>
-            <div class="metric-value">${DAYS.filter((day) => day.pass).length}</div>
+            <div class="metric-value">${trip.days.filter((day) => day.pass).length}</div>
             <p class="muted">วันที่ควรเช็ก route และเวลารถล่วงหน้า</p>
           </article>
         </div>

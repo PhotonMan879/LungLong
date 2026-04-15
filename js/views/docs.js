@@ -1,6 +1,6 @@
 import { escapeHtml } from "../core/utils.js";
 
-export function renderDocs(state) {
+export function renderDocs(state, trip) {
   return `
     <section class="grid-2">
       <article class="panel">
@@ -42,8 +42,8 @@ export function renderDocs(state) {
       </div>
       <div class="docs-grid" style="margin-top:16px;">
         ${
-          state.docs.length
-            ? state.docs
+          trip.docs.length
+            ? trip.docs
                 .map(
                   (doc) => `
                     <article class="doc-card">

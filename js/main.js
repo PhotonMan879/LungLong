@@ -1,6 +1,6 @@
-import { BACKUP_REGIONS, DAYS, TRIP_INFO } from "./data/trip-data.js";
+import { cloneDefaultTripTemplate } from "./data/trip-data.js";
 import { clearDocStore, dataUrlToBlob, deleteDocBlob, getDocBlob, putDocBlob, blobToDataUrl } from "./core/storage.js";
-import { createDefaultState, loadState, saveState } from "./core/state.js";
+import { createDefaultState, createTripState, loadState, saveState } from "./core/state.js";
 import { downloadJson, mapsSearchUrl, openInNewTab, researchUrl, uid } from "./core/utils.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderItinerary } from "./views/itinerary.js";
@@ -13,6 +13,8 @@ import { renderSettings } from "./views/settings.js";
 const app = document.getElementById("app");
 const searchInput = document.getElementById("global-search");
 const themeToggle = document.getElementById("theme-toggle");
+const tripSelect = document.getElementById("trip-select");
+const tripNewBtn = document.getElementById("trip-new-btn");
 const primaryNav = document.getElementById("primary-nav");
 const heroBadges = document.getElementById("hero-badges");
 const toast = document.getElementById("toast");
@@ -39,6 +41,10 @@ const modalTextWrap = document.getElementById("modal-text-wrap");
 
 let state = loadState();
 let toastTimer = null;
+
+function getActiveTrip() {
+  return state.trips[state.activeTripId];
+}
 
 function persist() {
   saveState(state);
@@ -98,42 +104,32 @@ function openModal(config) {
 
   modalShell.classList.add("open");
   modalShell.setAttribute("aria-hidden", "false");
-
-  const preferredTarget =
-    (config.fields.text && modalTextInput) ||
-    (config.fields.url && modalUrlInput) ||
-    (config.fields.name && modalNameInput);
-  preferredTarget?.focus();
 }
 
 function render() {
+  const trip = getActiveTrip();
   applyTheme();
 
   primaryNav.querySelectorAll("[data-view]").forEach((button) => {
     button.classList.toggle("active", button.dataset.view === state.view);
   });
 
+  tripSelect.innerHTML = Object.values(state.trips)
+    .map((item) => `<option value="${item.id}" ${item.id === state.activeTripId ? "selected" : ""}>${item.name}</option>`)
+    .join("");
+
   heroBadges.innerHTML = [
-    `<span class="badge">${TRIP_INFO.base}</span>`,
-    `<span class="badge">${TRIP_INFO.railPass}</span>`,
-    `<span class="badge">${state.docs.length} docs local</span>`
+    `<span class="badge">${trip.info.base}</span>`,
+    `<span class="badge">${trip.info.railPass}</span>`,
+    `<span class="badge">${trip.docs.length} docs local</span>`
   ].join("");
 
-  const views = {
-    dashboard: renderDashboard,
-    itinerary: renderItinerary,
-    backup: renderBackup,
-    docs: renderDocs,
-    checklist: renderChecklist,
-    budget: renderBudget,
-    settings: renderSettings
-  };
-
-  app.innerHTML = views[state.view]?.(state) || renderDashboard(state);
+  const views = { dashboard: renderDashboard, itinerary: renderItinerary, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
+  app.innerHTML = views[state.view]?.(state, trip) || renderDashboard(state, trip);
 }
 
 function getBackupSpotById(id) {
-  return BACKUP_REGIONS.flatMap((region) => region.spots).find((spot) => spot.id === id);
+  return getActiveTrip().backupRegions.flatMap((region) => region.spots).find((spot) => spot.id === id);
 }
 
 function openCustomSpotModal(base = null) {
@@ -141,7 +137,6 @@ function openCustomSpotModal(base = null) {
     type: "custom-spot",
     kicker: base ? "Shortlist backup spot" : "Add custom spot",
     title: base ? "เพิ่มจาก backup list" : "เพิ่มสถานที่เอง",
-    targetId: base?.id || "",
     fields: { name: true, region: true, category: true, time: true, url: false, text: true },
     values: {
       name: base?.name || "",
@@ -153,15 +148,27 @@ function openCustomSpotModal(base = null) {
   });
 }
 
-function saveCustomSpotFromModal() {
-  const name = modalNameInput.value.trim();
-  if (!name) {
-    showToast("กรอกชื่อสถานที่ก่อน");
-    modalNameInput.focus();
-    return;
-  }
+function openTripModal(mode) {
+  const trip = getActiveTrip();
+  const template = cloneDefaultTripTemplate();
+  openModal({
+    type: mode,
+    kicker: mode === "create-trip" ? "Create trip" : "Rename trip",
+    title: mode === "create-trip" ? "สร้างทริปใหม่" : "เปลี่ยนชื่อทริป",
+    targetId: trip.id,
+    fields: { name: true, region: false, category: false, time: false, url: false, text: true },
+    values: {
+      name: mode === "create-trip" ? `${template.info.title} Copy` : trip.name,
+      text: mode === "create-trip" ? `${template.info.window}\n${template.info.base}` : `${trip.info.window}\n${trip.info.base}`
+    }
+  });
+}
 
-  state.customSpots.unshift({
+function saveCustomSpotFromModal() {
+  const trip = getActiveTrip();
+  const name = modalNameInput.value.trim();
+  if (!name) return showToast("กรอกชื่อสถานที่ก่อน");
+  trip.customSpots.unshift({
     id: uid("spot"),
     name,
     region: modalRegionInput.value.trim() || "Custom spot",
@@ -171,179 +178,147 @@ function saveCustomSpotFromModal() {
   });
   persist();
   closeModal();
-  showToast("เพิ่ม custom spot แล้ว");
+}
+
+function saveTripFromModal() {
+  const type = modalTypeInput.value;
+  const name = modalNameInput.value.trim();
+  if (!name) return showToast("กรอกชื่อทริปก่อน");
+  if (type === "create-trip") {
+    const trip = createTripState({ id: uid("trip"), name, info: { title: name } });
+    const [windowLine, baseLine] = modalTextInput.value.split("\n");
+    if (windowLine?.trim()) trip.info.window = windowLine.trim();
+    if (baseLine?.trim()) trip.info.base = baseLine.trim();
+    state.trips[trip.id] = trip;
+    state.activeTripId = trip.id;
+  } else {
+    const trip = getActiveTrip();
+    trip.name = name;
+    trip.info.title = name;
+    const [windowLine, baseLine] = modalTextInput.value.split("\n");
+    if (windowLine?.trim()) trip.info.window = windowLine.trim();
+    if (baseLine?.trim()) trip.info.base = baseLine.trim();
+  }
+  persist();
+  closeModal();
 }
 
 async function handleDocSave() {
+  const trip = getActiveTrip();
   const nameInput = document.getElementById("doc-name");
   const tagsInput = document.getElementById("doc-tags");
   const fileInput = document.getElementById("doc-file");
   const file = fileInput?.files?.[0];
   const name = nameInput?.value?.trim() || file?.name?.trim();
-
-  if (!file || !name) {
-    showToast("กรอกชื่อเอกสารและเลือกไฟล์ก่อน");
-    return;
-  }
-
+  if (!file || !name) return showToast("กรอกชื่อเอกสารและเลือกไฟล์ก่อน");
   const id = uid("doc");
   await putDocBlob(id, file);
-  state.docs.unshift({
-    id,
-    name,
-    type: file.type || "file",
-    tags: tagsInput?.value?.split(",").map((tag) => tag.trim()).filter(Boolean) || [],
-    size: file.size,
-    createdAt: new Date().toISOString()
-  });
-
+  trip.docs.unshift({ id, name, type: file.type || "file", tags: tagsInput?.value?.split(",").map((tag) => tag.trim()).filter(Boolean) || [], size: file.size, createdAt: new Date().toISOString() });
   persist();
   nameInput.value = "";
   tagsInput.value = "";
   fileInput.value = "";
-  showToast("บันทึกเอกสารแล้ว");
 }
 
 async function handleOpenDoc(docId) {
   const blob = await getDocBlob(docId);
-  if (!blob) {
-    showToast("หาไฟล์ไม่เจอใน IndexedDB");
-    return;
-  }
+  if (!blob) return showToast("หาไฟล์ไม่เจอใน IndexedDB");
   const url = URL.createObjectURL(blob);
   openInNewTab(url);
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 async function handleDeleteDoc(docId) {
-  state.docs = state.docs.filter((doc) => doc.id !== docId);
+  const trip = getActiveTrip();
+  trip.docs = trip.docs.filter((doc) => doc.id !== docId);
   await deleteDocBlob(docId);
   persist();
-  showToast("ลบเอกสารแล้ว");
 }
 
 async function exportBackup() {
-  const docs = await Promise.all(
-    state.docs.map(async (doc) => {
-      const blob = await getDocBlob(doc.id);
-      return blob
-        ? {
-            ...doc,
-            dataUrl: await blobToDataUrl(blob)
-          }
-        : doc;
-    })
-  );
-
-  downloadJson("kansai-project-2-backup.json", {
-    meta: {
-      exportedAt: new Date().toISOString(),
-      project: TRIP_INFO.title,
-      format: "kansai-project-2"
-    },
-    state: {
-      ...state,
-      docs
-    }
-  });
-  showToast("export backup เรียบร้อย");
+  const trips = {};
+  for (const [tripId, trip] of Object.entries(state.trips)) {
+    trips[tripId] = {
+      ...trip,
+      docs: await Promise.all(trip.docs.map(async (doc) => {
+        const blob = await getDocBlob(doc.id);
+        return blob ? { ...doc, dataUrl: await blobToDataUrl(blob) } : doc;
+      }))
+    };
+  }
+  downloadJson("kansai-project-2-backup.json", { ...state, trips, exportedAt: new Date().toISOString(), version: 3 });
 }
 
 async function importBackup(file) {
-  if (!file) return;
-  const text = await file.text();
-  const parsed = JSON.parse(text);
-  const imported = parsed?.state;
-  if (!imported) throw new Error("invalid backup");
-
+  const parsed = JSON.parse(await file.text());
+  if (!parsed?.trips) throw new Error("invalid backup");
   await clearDocStore();
-  const docs = [];
-  for (const doc of imported.docs || []) {
-    if (doc.dataUrl) {
-      const blob = await dataUrlToBlob(doc.dataUrl);
-      await putDocBlob(doc.id, blob);
+  const trips = {};
+  for (const [tripId, trip] of Object.entries(parsed.trips)) {
+    const docs = [];
+    for (const doc of trip.docs || []) {
+      if (doc.dataUrl) await putDocBlob(doc.id, await dataUrlToBlob(doc.dataUrl));
+      const { dataUrl, ...rest } = doc;
+      docs.push(rest);
     }
-    const { dataUrl, ...rest } = doc;
-    docs.push(rest);
+    trips[tripId] = createTripState({ ...trip, id: tripId, docs });
   }
-
-  state = {
-    ...createDefaultState(),
-    ...imported,
-    docs
-  };
+  state = { ...createDefaultState(), ...parsed, trips, activeTripId: parsed.activeTripId && trips[parsed.activeTripId] ? parsed.activeTripId : Object.keys(trips)[0] };
   persist();
-  showToast("import backup เสร็จแล้ว");
 }
 
 function handleActivityToggle(activityId) {
-  const current = state.activities[activityId] || { checked: false, note: "", links: [] };
-  state.activities[activityId] = { ...current, checked: !current.checked };
+  const trip = getActiveTrip();
+  const current = trip.activities[activityId] || { checked: false, note: "", links: [] };
+  trip.activities[activityId] = { ...current, checked: !current.checked };
   persist();
 }
 
 function handleActivityNote(activityId) {
-  const current = state.activities[activityId] || { checked: false, note: "", links: [] };
-  openModal({
-    type: "activity-note",
-    kicker: "Activity note",
-    title: "แก้โน้ตกิจกรรม",
-    targetId: activityId,
-    fields: { name: false, region: false, category: false, time: false, url: false, text: true },
-    values: { text: current.note || "" }
-  });
+  const trip = getActiveTrip();
+  openModal({ type: "activity-note", kicker: "Activity note", title: "แก้โน้ตกิจกรรม", targetId: activityId, fields: { name: false, region: false, category: false, time: false, url: false, text: true }, values: { text: trip.activities[activityId]?.note || "" } });
 }
 
 function handleActivityLink(activityId) {
-  openModal({
-    type: "activity-link",
-    kicker: "Activity link",
-    title: "เพิ่มลิงก์กิจกรรม",
-    targetId: activityId,
-    fields: { name: false, region: false, category: false, time: false, url: true, text: false },
-    values: { url: "" }
-  });
+  openModal({ type: "activity-link", kicker: "Activity link", title: "เพิ่มลิงก์กิจกรรม", targetId: activityId, fields: { name: false, region: false, category: false, time: false, url: true, text: false }, values: { url: "" } });
 }
 
 function removeActivityLink(activityId, index) {
-  const current = state.activities[activityId] || { checked: false, note: "", links: [] };
+  const trip = getActiveTrip();
+  const current = trip.activities[activityId] || { checked: false, note: "", links: [] };
   current.links.splice(index, 1);
-  state.activities[activityId] = { ...current, links: [...current.links] };
+  trip.activities[activityId] = { ...current, links: [...current.links] };
   persist();
 }
 
 function handleChecklistToggle(id) {
-  state.checklistState[id] = !state.checklistState[id];
+  const trip = getActiveTrip();
+  trip.checklistState[id] = !trip.checklistState[id];
   persist();
 }
 
 function handleChecklistAdd() {
+  const trip = getActiveTrip();
   const input = document.getElementById("custom-checklist-text");
   const text = input?.value?.trim();
-  if (!text) {
-    showToast("กรอก checklist item ก่อน");
-    return;
-  }
-  state.checklistCustom.push({ id: uid("check"), cat: "Custom", text });
+  if (!text) return showToast("กรอก checklist item ก่อน");
+  trip.checklistCustom.push({ id: uid("check"), cat: "Custom", text });
   input.value = "";
   persist();
-  showToast("เพิ่ม checklist item แล้ว");
 }
 
 function removeChecklistItem(id) {
-  state.checklistCustom = state.checklistCustom.filter((item) => item.id !== id);
-  delete state.checklistState[id];
+  const trip = getActiveTrip();
+  trip.checklistCustom = trip.checklistCustom.filter((item) => item.id !== id);
+  delete trip.checklistState[id];
   persist();
 }
 
 function handleBudgetInput(target) {
+  const trip = getActiveTrip();
   const dayId = Number(target.dataset.dayId);
-  const nextValue = Number(target.value || 0);
-  if (target.dataset.budgetKind === "plan") {
-    state.budgetPlan[dayId] = nextValue;
-  } else {
-    state.budgetActual[dayId] = nextValue;
-  }
+  if (target.dataset.budgetKind === "plan") trip.budgetPlan[dayId] = Number(target.value || 0);
+  else trip.budgetActual[dayId] = Number(target.value || 0);
   saveState(state);
 }
 
@@ -351,33 +326,23 @@ function handleModalSubmit(event) {
   event.preventDefault();
   const type = modalTypeInput.value;
   const targetId = modalTargetIdInput.value;
-
-  if (type === "custom-spot") {
-    saveCustomSpotFromModal();
-    return;
-  }
-
+  if (type === "custom-spot") return saveCustomSpotFromModal();
+  if (type === "create-trip" || type === "rename-trip") return saveTripFromModal();
   if (type === "activity-note") {
-    const current = state.activities[targetId] || { checked: false, note: "", links: [] };
-    state.activities[targetId] = { ...current, note: modalTextInput.value.trim() };
+    const trip = getActiveTrip();
+    const current = trip.activities[targetId] || { checked: false, note: "", links: [] };
+    trip.activities[targetId] = { ...current, note: modalTextInput.value.trim() };
     persist();
-    closeModal();
-    showToast("อัปเดต note แล้ว");
-    return;
+    return closeModal();
   }
-
   if (type === "activity-link") {
     const next = modalUrlInput.value.trim();
-    if (!next) {
-      showToast("วาง URL ก่อน");
-      modalUrlInput.focus();
-      return;
-    }
-    const current = state.activities[targetId] || { checked: false, note: "", links: [] };
-    state.activities[targetId] = { ...current, links: [...(current.links || []), next] };
+    if (!next) return showToast("วาง URL ก่อน");
+    const trip = getActiveTrip();
+    const current = trip.activities[targetId] || { checked: false, note: "", links: [] };
+    trip.activities[targetId] = { ...current, links: [...(current.links || []), next] };
     persist();
     closeModal();
-    showToast("เพิ่ม link แล้ว");
   }
 }
 
@@ -385,65 +350,28 @@ function updateDocFileMeta(file) {
   const meta = document.getElementById("doc-file-meta");
   const nameInput = document.getElementById("doc-name");
   if (!meta) return;
-
-  if (!file) {
-    meta.textContent = "ยังไม่ได้เลือกไฟล์";
-    return;
-  }
-
-  meta.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB`;
-  if (nameInput && !nameInput.value.trim()) {
-    nameInput.value = file.name.replace(/\.[^.]+$/, "");
-  }
+  meta.textContent = file ? `${file.name} · ${Math.round(file.size / 1024)} KB` : "ยังไม่ได้เลือกไฟล์";
+  if (file && nameInput && !nameInput.value.trim()) nameInput.value = file.name.replace(/\.[^.]+$/, "");
 }
 
 function wireEvents() {
   searchInput.value = state.search || "";
-  searchInput.addEventListener("input", (event) => {
-    state.search = event.target.value;
-    saveState(state);
-    render();
-  });
-
-  themeToggle.addEventListener("click", () => {
-    state.theme = state.theme === "dark" ? "light" : "dark";
-    persist();
-  });
-
-  primaryNav.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-view]");
-    if (!button) return;
-    setView(button.dataset.view);
-  });
-
+  searchInput.addEventListener("input", (event) => { state.search = event.target.value; saveState(state); render(); });
+  themeToggle.addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; persist(); });
+  tripSelect.addEventListener("change", (event) => { state.activeTripId = event.target.value; saveState(state); render(); });
+  tripNewBtn.addEventListener("click", () => openTripModal("create-trip"));
+  primaryNav.addEventListener("click", (event) => { const button = event.target.closest("[data-view]"); if (button) setView(button.dataset.view); });
   modalForm.addEventListener("submit", handleModalSubmit);
-  modalShell.addEventListener("click", (event) => {
-    const target = event.target.closest("[data-action='close-modal']");
-    if (!target) return;
-    closeModal();
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && modalShell.classList.contains("open")) {
-      closeModal();
-    }
-  });
+  modalShell.addEventListener("click", (event) => { if (event.target.closest("[data-action='close-modal']")) closeModal(); });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && modalShell.classList.contains("open")) closeModal(); });
 
   app.addEventListener("click", async (event) => {
     const target = event.target.closest("[data-action]");
     if (!target) return;
-
     const action = target.dataset.action;
-
     if (action === "switch-view") setView(target.dataset.view);
-    if (action === "set-day") {
-      state.dayId = Number(target.dataset.dayId);
-      persist();
-    }
-    if (action === "set-filter") {
-      state.filter = target.dataset.filter;
-      persist();
-    }
+    if (action === "set-day") { getActiveTrip().dayId = Number(target.dataset.dayId); persist(); }
+    if (action === "set-filter") { state.filter = target.dataset.filter; persist(); }
     if (action === "toggle-activity") handleActivityToggle(target.dataset.activityId);
     if (action === "edit-note") handleActivityNote(target.dataset.activityId);
     if (action === "add-link") handleActivityLink(target.dataset.activityId);
@@ -451,31 +379,25 @@ function wireEvents() {
     if (action === "close-modal") closeModal();
     if (action === "open-maps") openInNewTab(mapsSearchUrl(target.dataset.query));
     if (action === "open-research") openInNewTab(researchUrl(target.dataset.query));
-    if (action === "save-backup-spot") {
-      const spot = getBackupSpotById(target.dataset.spotId);
-      if (spot) openCustomSpotModal({ ...spot, region: "Shortlisted backup" });
-    }
+    if (action === "save-backup-spot") { const spot = getBackupSpotById(target.dataset.spotId); if (spot) openCustomSpotModal({ ...spot, region: "Shortlisted backup" }); }
     if (action === "add-custom-spot") openCustomSpotModal();
-    if (action === "remove-custom-spot") {
-      state.customSpots = state.customSpots.filter((spot) => spot.id !== target.dataset.spotId);
-      persist();
-    }
+    if (action === "remove-custom-spot") { const trip = getActiveTrip(); trip.customSpots = trip.customSpots.filter((spot) => spot.id !== target.dataset.spotId); persist(); }
     if (action === "save-doc") await handleDocSave();
     if (action === "open-doc") await handleOpenDoc(target.dataset.docId);
     if (action === "delete-doc") await handleDeleteDoc(target.dataset.docId);
     if (action === "toggle-checklist") handleChecklistToggle(target.dataset.checklistId);
     if (action === "add-checklist-item") handleChecklistAdd();
     if (action === "delete-checklist-item") removeChecklistItem(target.dataset.checklistId);
-    if (action === "copy-script") {
-      await navigator.clipboard.writeText(target.dataset.script);
-      showToast("คัดลอกประโยคแล้ว");
-    }
-    if (action === "trigger-import") {
-      document.getElementById("import-json-input")?.click();
-    }
+    if (action === "copy-script") await navigator.clipboard.writeText(target.dataset.script);
+    if (action === "trigger-import") document.getElementById("import-json-input")?.click();
     if (action === "export-json") await exportBackup();
-    if (action === "set-theme") {
-      state.theme = target.dataset.theme;
+    if (action === "set-theme") { state.theme = target.dataset.theme; persist(); }
+    if (action === "create-trip") openTripModal("create-trip");
+    if (action === "rename-trip") openTripModal("rename-trip");
+    if (action === "delete-trip") {
+      if (Object.keys(state.trips).length === 1) return showToast("ต้องมีอย่างน้อย 1 ทริป");
+      delete state.trips[state.activeTripId];
+      state.activeTripId = Object.keys(state.trips)[0];
       persist();
     }
   });
@@ -483,63 +405,16 @@ function wireEvents() {
   app.addEventListener("change", async (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-
-    if (target.matches("[data-action='update-budget']")) {
-      handleBudgetInput(target);
-      render();
-    }
-
+    if (target.matches("[data-action='update-budget']")) { handleBudgetInput(target); render(); }
     if (target.id === "import-json-input") {
-      try {
-        await importBackup(target.files?.[0]);
-      } catch (error) {
-        console.error(error);
-        showToast("import ไม่สำเร็จ");
-      } finally {
-        target.value = "";
-      }
+      try { await importBackup(target.files?.[0]); } catch (error) { console.error(error); showToast("import ไม่สำเร็จ"); } finally { target.value = ""; }
     }
-
-    if (target.id === "doc-file") {
-      updateDocFileMeta(target.files?.[0] || null);
-    }
-  });
-
-  app.addEventListener("dragover", (event) => {
-    const zone = event.target.closest("#doc-dropzone");
-    if (!zone) return;
-    event.preventDefault();
-    zone.classList.add("dragover");
-  });
-
-  app.addEventListener("dragleave", (event) => {
-    const zone = event.target.closest("#doc-dropzone");
-    if (!zone) return;
-    zone.classList.remove("dragover");
-  });
-
-  app.addEventListener("drop", (event) => {
-    const zone = event.target.closest("#doc-dropzone");
-    if (!zone) return;
-    event.preventDefault();
-    zone.classList.remove("dragover");
-    const fileInput = document.getElementById("doc-file");
-    const file = event.dataTransfer?.files?.[0];
-    if (!fileInput || !file) return;
-
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    fileInput.files = dt.files;
-    updateDocFileMeta(file);
+    if (target.id === "doc-file") updateDocFileMeta(target.files?.[0] || null);
   });
 }
 
 function registerServiceWorker() {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch((error) => {
-      console.warn("SW registration failed", error);
-    });
-  }
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
 applyTheme();

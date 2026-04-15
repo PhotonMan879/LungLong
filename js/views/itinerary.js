@@ -1,4 +1,3 @@
-import { DAYS } from "../data/trip-data.js";
 import { escapeHtml, joinTags, mapsSearchUrl, researchUrl, textMatches } from "../core/utils.js";
 
 function matchesFilter(activityState, filter) {
@@ -6,10 +5,10 @@ function matchesFilter(activityState, filter) {
   return filter === "done" ? activityState.checked : !activityState.checked;
 }
 
-export function renderItinerary(state) {
-  const day = DAYS.find((item) => item.id === state.dayId) || DAYS[0];
+export function renderItinerary(state, trip) {
+  const day = trip.days.find((item) => item.id === trip.dayId) || trip.days[0];
   const activities = day.activities.filter((activity) => {
-    const activityState = state.activities[activity.id] || {};
+    const activityState = trip.activities[activity.id] || {};
     const searchable = `${activity.title} ${activity.desc} ${activity.tags.join(" ")} ${day.city}`;
     return matchesFilter(activityState, state.filter) && textMatches(searchable, state.search);
   });
@@ -30,7 +29,7 @@ export function renderItinerary(state) {
       </div>
 
       <div class="day-switcher" style="margin-top:16px;">
-        ${DAYS.map(
+        ${trip.days.map(
           (item) => `
             <button class="pill-btn ${item.id === day.id ? "active" : ""}" type="button" data-action="set-day" data-day-id="${item.id}">
               Day ${item.id}
@@ -62,7 +61,7 @@ export function renderItinerary(state) {
           activities.length
             ? activities
                 .map((activity) => {
-                  const activityState = state.activities[activity.id] || { checked: false, note: "", links: [] };
+                  const activityState = trip.activities[activity.id] || { checked: false, note: "", links: [] };
                   return `
                     <article class="activity-card ${activityState.checked ? "checked" : ""}">
                       <div class="activity-top">
