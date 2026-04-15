@@ -62,14 +62,14 @@ export function renderDashboard(state, trip) {
               return `
                 <div class="activity-card ${activityState.checked ? "checked" : ""}">
                   <div class="activity-top">
-                    <div class="activity-title">
-                      <div>${activity.icon}</div>
-                      <div>
-                        <div class="day-title">${activity.title}</div>
-                        <p class="muted">${activity.desc}</p>
+                    <span class="activity-icon">${activity.icon}</span>
+                    <div class="activity-body" style="flex:1;min-width:0;">
+                      <div class="activity-headline">
+                        <strong>${activity.title}</strong>
+                        <span class="time-pill">${activity.time}</span>
                       </div>
+                      <p class="muted compact-desc">${activity.desc}</p>
                     </div>
-                    <div class="time-pill">${activity.time}</div>
                   </div>
                 </div>
               `;
