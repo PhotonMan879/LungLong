@@ -1494,6 +1494,17 @@ html[data-theme="dark"] .inline-add-place {
   background: var(--surface-strong);
 }
 
+.video-embed-wrapper {
+  margin-top: 8px;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
 .video-embed-wrapper iframe {
   position: absolute;
   top: 0;
@@ -1501,6 +1512,35 @@ html[data-theme="dark"] .inline-add-place {
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* ── TikTok embed ─────────────────────────────── */
+.tiktok-embed-wrapper {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.tiktok-embed-wrapper iframe {
+  width: 100%;
+  height: 560px;
+  border: 0;
+  display: block;
+}
+
+/* ── Place mini-map ───────────────────────────── */
+.place-mini-map {
+  margin-top: 10px;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  z-index: 0;
 }
 
 .embed-toolbar {

@@ -45,6 +45,17 @@ function renderSavedCard(place, state, trip) {
         </div>
       `;
     }
+    if (preview.type === "tiktok" && preview.videoId) {
+      return `
+        <div class="tiktok-embed-wrapper" style="margin-top:12px;">
+          <iframe src="https://www.tiktok.com/embed/v2/${preview.videoId}" allowfullscreen scrolling="no" allow="encrypted-media"></iframe>
+        </div>
+        <div class="embed-toolbar">
+          <div class="muted">♪ TikTok</div>
+          <button class="tiny-btn" type="button" data-action="remove-place-link" data-place-id="${place.id}" data-link-idx="${idx}">ลบวิดีโอ</button>
+        </div>
+      `;
+    }
     return `
       <div class="place-link-row">
         <span class="link-badge ${preview.badgeClass}">${escapeHtml(preview.icon)} ${escapeHtml(preview.label)}</span>
@@ -105,6 +116,7 @@ function renderSavedCard(place, state, trip) {
           data-action="toggle-move-to-day" data-place-id="${place.id}">🗓️ ลง Itinerary</button>
       </div>
       ${moveDayButtons}
+      ${(place.lat && place.lng) ? `<div class="place-mini-map" id="mini-map-${escapeHtml(place.id)}" data-lat="${place.lat}" data-lng="${place.lng}" data-name="${escapeHtml(place.name)}"></div>` : ""}
     </article>
   `;
 }

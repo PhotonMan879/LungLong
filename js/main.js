@@ -57,6 +57,29 @@ let toastTimer = null;
 let dragSrcSpotId = null;
 let currentUserId = null;
 let syncTimer = null;
+let miniMapInstances = new Map();
+
+function destroyMiniMaps() {
+  miniMapInstances.forEach((m) => { try { m.remove(); } catch {} });
+  miniMapInstances.clear();
+}
+
+function initMiniMaps() {
+  if (typeof L === "undefined") return;
+  document.querySelectorAll(".place-mini-map[data-lat]").forEach((el) => {
+    if (miniMapInstances.has(el.id)) return;
+    const lat = parseFloat(el.dataset.lat);
+    const lng = parseFloat(el.dataset.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+    const map = L.map(el, {
+      zoomControl: false, dragging: false, touchZoom: false,
+      doubleClickZoom: false, scrollWheelZoom: false, attributionControl: false
+    }).setView([lat, lng], 15);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+    L.marker([lat, lng]).addTo(map);
+    miniMapInstances.set(el.id, map);
+  });
+}
 
 function getActiveTrip() {
   return state.trips[state.activeTripId];
@@ -199,7 +222,9 @@ function render() {
   }
 
   const views = { dashboard: renderDashboard, assist: renderAssist, prep: renderPrep, itinerary: renderItinerary, transport: renderTransport, places: renderPlaces, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
+  destroyMiniMaps();
   app.innerHTML = views[state.view]?.(state, trip) || renderDashboard(state, trip);
+  if (state.view === "places") setTimeout(() => initMiniMaps(), 80);
 }
 
 function getBackupSpotById(id) {
@@ -630,7 +655,8 @@ function wireEvents() {
         trip.placesList.push({
           id: uid("pl"), sourceId: rec.id, name: rec.name, category: rec.category,
           desc: rec.desc || "", note: "", links: [], visitStatus: "pending",
-          estimatedTime: rec.estimatedTime || "", addedFrom: "recommended"
+          estimatedTime: rec.estimatedTime || "", addedFrom: "recommended",
+          lat: rec.lat || null, lng: rec.lng || null
         });
         persist();
       }

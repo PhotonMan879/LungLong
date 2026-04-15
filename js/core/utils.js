@@ -104,6 +104,19 @@ function getYouTubeId(url) {
   }
 }
 
+function getTikTokId(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes("tiktok.com")) {
+      const match = parsed.pathname.match(/\/video\/(\d+)/);
+      return match ? match[1] : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function getLinkPreview(url) {
   const fallback = {
     type: "link",
@@ -136,7 +149,8 @@ export function getLinkPreview(url) {
     }
 
     if (host.includes("tiktok.com")) {
-      return { ...fallback, type: "tiktok", label: "TikTok", badgeClass: "link-badge-tiktok", icon: "♪", displayUrl: host };
+      const tiktokId = getTikTokId(url);
+      return { ...fallback, type: "tiktok", label: "TikTok", badgeClass: "link-badge-tiktok", icon: "♪", displayUrl: host, videoId: tiktokId };
     }
 
     if (host.includes("facebook.com") || host.includes("fb.watch")) {

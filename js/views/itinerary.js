@@ -190,6 +190,21 @@ function renderLinkCard(link, activityId, index) {
     `;
   }
 
+  if (preview.type === "tiktok" && preview.videoId) {
+    return `
+      <div class="tiktok-embed-wrapper" style="margin-top:12px;">
+        <iframe src="https://www.tiktok.com/embed/v2/${preview.videoId}" allowfullscreen scrolling="no" allow="encrypted-media"></iframe>
+      </div>
+      <div class="embed-toolbar">
+        <div class="muted">♪ TikTok</div>
+        <div class="link-actions">
+          <button class="tiny-btn" type="button" data-action="open-link" data-url="${escapeHtml(link)}">เปิดดูแยก</button>
+          <button class="tiny-btn" type="button" data-action="remove-link" data-activity-id="${activityId}" data-link-index="${index}">ลบวิดีโอ</button>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="link-item link-item-rich">
       ${
