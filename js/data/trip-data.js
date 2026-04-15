@@ -75,6 +75,16 @@ export const DEFAULT_TRIP_TEMPLATE = {
     { id: "cl-tk-2", cat: "Tickets", text: "ตรวจว่าตั๋ว JAL ขาไปและขากลับอยู่ในเครื่องเรียบร้อย" },
     { id: "cl-doc-1", cat: "Documents", text: "กรอก Visit Japan Web และเตรียม passport ให้พร้อม" }
   ],
+  defaultPacking: [
+    { id: "pk-14-1", phase: "T-14", cat: "Documents", text: "เช็ก passport, e-ticket, hotel booking และประกันเดินทางให้ครบ" },
+    { id: "pk-14-2", phase: "T-14", cat: "Money", text: "แลกเงินเยนก้อนแรก และเตรียมบัตรที่ใช้ต่างประเทศได้" },
+    { id: "pk-7-1", phase: "T-7", cat: "Internet", text: "เปิด eSIM, โหลดแผนที่ offline และปักหมุดจุดสำคัญใน Google Maps" },
+    { id: "pk-7-2", phase: "T-7", cat: "Health", text: "เตรียมยา personal, พลาสเตอร์, หน้ากาก และเอกสารแพ้ยา" },
+    { id: "pk-2-1", phase: "T-2", cat: "Packing", text: "แพ็กเสื้อผ้า, adaptor, power bank, สายชาร์จ และรองเท้าเดิน" },
+    { id: "pk-2-2", phase: "T-2", cat: "Airport", text: "เช็กวิธีไปสนามบิน, เวลาเช็กอิน, และโหลด boarding app ให้พร้อม" },
+    { id: "pk-0-1", phase: "Day Of", cat: "Documents", text: "พก passport, wallet, มือถือ, power bank และเอกสารขึ้นเครื่องไว้ในกระเป๋าหยิบง่าย" },
+    { id: "pk-0-2", phase: "Day Of", cat: "Airport", text: "ออกจากบ้านเผื่อเวลา, เช็กเกต/เทอร์มินัลอีกครั้ง, และกินข้าวก่อนขึ้นเครื่อง" }
+  ],
   japaneseScripts: [
     { cat: "สนามบิน / JR", items: [
       { title: "แลก JR Pass", jp: "JRパスの引き換えをお願いします。これが引換証です。", reading: "เจอาร์พาสึ โนะ ฮิคิคาเอะ โอ เนไกชิมัส", th: "ขอแลก JR Pass ครับ นี่คือ voucher" },

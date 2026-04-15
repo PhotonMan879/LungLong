@@ -33,6 +33,9 @@ export function createTripState(overrides = {}) {
     customSpots: overrides.customSpots || [],
     checklistState: overrides.checklistState || {},
     checklistCustom: overrides.checklistCustom || [],
+    defaultPacking: overrides.defaultPacking || template.defaultPacking,
+    packingState: overrides.packingState || {},
+    packingCustom: overrides.packingCustom || [],
     createdAt: overrides.createdAt || new Date().toISOString()
   };
 }

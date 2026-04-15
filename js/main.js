@@ -4,6 +4,7 @@ import { createDefaultState, createTripState, loadState, saveState } from "./cor
 import { downloadJson, mapsSearchUrl, openInNewTab, researchUrl, uid } from "./core/utils.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderAssist } from "./views/assist.js";
+import { renderPrep } from "./views/prep.js";
 import { renderItinerary } from "./views/itinerary.js";
 import { renderBackup } from "./views/backup.js";
 import { renderDocs } from "./views/docs.js";
@@ -125,7 +126,7 @@ function render() {
     `<span class="badge">${trip.docs.length} docs local</span>`
   ].join("");
 
-  const views = { dashboard: renderDashboard, assist: renderAssist, itinerary: renderItinerary, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
+  const views = { dashboard: renderDashboard, assist: renderAssist, prep: renderPrep, itinerary: renderItinerary, backup: renderBackup, docs: renderDocs, checklist: renderChecklist, budget: renderBudget, settings: renderSettings };
   app.innerHTML = views[state.view]?.(state, trip) || renderDashboard(state, trip);
 }
 
@@ -298,6 +299,12 @@ function handleChecklistToggle(id) {
   persist();
 }
 
+function handlePackingToggle(id) {
+  const trip = getActiveTrip();
+  trip.packingState[id] = !trip.packingState[id];
+  persist();
+}
+
 function handleChecklistAdd() {
   const trip = getActiveTrip();
   const input = document.getElementById("custom-checklist-text");
@@ -312,6 +319,29 @@ function removeChecklistItem(id) {
   const trip = getActiveTrip();
   trip.checklistCustom = trip.checklistCustom.filter((item) => item.id !== id);
   delete trip.checklistState[id];
+  persist();
+}
+
+function handlePackingAdd() {
+  const trip = getActiveTrip();
+  const input = document.getElementById("packing-custom-text");
+  const phaseInput = document.getElementById("packing-custom-phase");
+  const text = input?.value?.trim();
+  if (!text) return showToast("กรอกของหรือ task ก่อน");
+  trip.packingCustom.push({
+    id: uid("pack"),
+    phase: phaseInput?.value || "T-2",
+    cat: "Custom",
+    text
+  });
+  input.value = "";
+  persist();
+}
+
+function removePackingItem(id) {
+  const trip = getActiveTrip();
+  trip.packingCustom = trip.packingCustom.filter((item) => item.id !== id);
+  delete trip.packingState[id];
   persist();
 }
 
@@ -408,6 +438,9 @@ function wireEvents() {
     if (action === "toggle-checklist") handleChecklistToggle(target.dataset.checklistId);
     if (action === "add-checklist-item") handleChecklistAdd();
     if (action === "delete-checklist-item") removeChecklistItem(target.dataset.checklistId);
+    if (action === "toggle-packing") handlePackingToggle(target.dataset.packingId);
+    if (action === "add-packing-item") handlePackingAdd();
+    if (action === "delete-packing-item") removePackingItem(target.dataset.packingId);
     if (action === "copy-script") await navigator.clipboard.writeText(target.dataset.script);
     if (action === "trigger-import") document.getElementById("import-json-input")?.click();
     if (action === "export-json") await exportBackup();

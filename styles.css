@@ -301,7 +301,9 @@ button:hover {
 .backup-grid,
 .docs-grid,
 .budget-grid,
-.assist-grid {
+.assist-grid,
+.prep-deadline-grid,
+.prep-phase-stack {
   display: grid;
   gap: 16px;
 }
@@ -315,7 +317,8 @@ button:hover {
 .metrics-grid,
 .backup-grid,
 .docs-grid,
-.assist-grid {
+.assist-grid,
+.prep-deadline-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -326,7 +329,9 @@ button:hover {
 .backup-card,
 .script-card,
 .settings-card,
-.assist-card {
+.assist-card,
+.prep-card,
+.prep-phase-block {
   border-radius: var(--radius-lg);
   padding: 18px;
 }
@@ -588,6 +593,36 @@ button:hover {
   background: var(--surface-strong);
 }
 
+.prep-card,
+.prep-phase-block {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.prep-phase-stack {
+  grid-template-columns: 1fr;
+}
+
+.prep-inline-form {
+  flex-wrap: wrap;
+  width: min(100%, 620px);
+}
+
+.prep-inline-form select {
+  width: 130px;
+}
+
+.prep-inline-form input {
+  flex: 1;
+  min-width: 240px;
+}
+
+.prep-checklist-item {
+  align-items: flex-start;
+}
+
 .assist-card-compact {
   align-content: start;
 }
@@ -793,7 +828,9 @@ button:hover {
   .backup-grid,
   .docs-grid,
   .grid-2,
-  .budget-grid {
+  .budget-grid,
+  .assist-grid,
+  .prep-deadline-grid {
     grid-template-columns: 1fr;
   }
 

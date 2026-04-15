@@ -4,6 +4,8 @@ const modules = [
   "./../js/core/storage.js",
   "./../js/core/state.js",
   "./../js/views/dashboard.js",
+  "./../js/views/assist.js",
+  "./../js/views/prep.js",
   "./../js/views/itinerary.js",
   "./../js/views/backup.js",
   "./../js/views/docs.js",
