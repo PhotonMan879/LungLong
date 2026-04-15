@@ -39,24 +39,24 @@ function renderActivityCard(activity, trip) {
           <div>
             <div class="day-title">${escapeHtml(activity.title)}</div>
             <p class="muted">${escapeHtml(activity.desc)}</p>
-            <div class="chip-row" style="margin-top:8px;">${joinTags(activity.tags)}</div>
+            <div class="chip-row" style="margin-top:4px;">${joinTags(activity.tags)}</div>
           </div>
         </div>
         <div class="time-pill">${activity.time}</div>
       </div>
       ${
         activityState.note
-          ? `<div class="note-box" style="margin-top:12px;"><strong>Note:</strong> ${escapeHtml(activityState.note)}</div>`
+          ? `<div class="note-box" style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(activityState.note)}</div>`
           : ""
       }
       ${
         activityState.links?.length
-          ? `<div class="link-list" style="margin-top:12px;">
+          ? `<div class="link-list" style="margin-top:8px;">
               ${activityState.links.map((link, index) => renderLinkCard(link, activity.id, index)).join("")}
             </div>`
           : ""
       }
-      <div class="action-row" style="margin-top:12px;">
+      <div class="action-row" style="margin-top:8px;">
         <button class="tiny-btn" type="button" data-action="toggle-activity" data-activity-id="${activity.id}">
           ${activityState.checked ? "เอาออกจาก done" : "Mark done"}
         </button>
@@ -92,7 +92,7 @@ export function renderItinerary(state, trip) {
         </div>
       </div>
 
-      <div class="day-switcher" style="margin-top:16px;">
+      <div class="day-switcher" style="margin-top:10px;">
         ${trip.days.map(
           (item) => `
             <button class="pill-btn ${item.id === day.id ? "active" : ""}" type="button" data-action="set-day" data-day-id="${item.id}">
@@ -102,7 +102,7 @@ export function renderItinerary(state, trip) {
         ).join("")}
       </div>
 
-      <div class="filter-row" style="margin-top:12px;">
+      <div class="filter-row" style="margin-top:8px;">
         ${["all", "todo", "done"].map(
           (filter) => `
             <button class="filter-chip ${state.filter === filter ? "active" : ""}" type="button" data-action="set-filter" data-filter="${filter}">
@@ -120,7 +120,7 @@ export function renderItinerary(state, trip) {
           <p class="muted">${day.theme}</p>
         </div>
       </div>
-      <div class="activity-stack timeline-sections" style="margin-top:16px;">
+      <div class="activity-stack timeline-sections" style="margin-top:10px;">
         ${
           activities.length
             ? ["morning", "afternoon", "evening", "flex"]

@@ -62,7 +62,7 @@ a {
 .shell {
   width: min(1200px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 24px 0 56px;
+  padding: 16px 0 40px;
 }
 
 /* When inside split-left, shell doesn't center — uses full width */
@@ -93,9 +93,9 @@ a {
 .topbar {
   display: flex;
   justify-content: space-between;
-  gap: 24px;
-  padding: 24px;
-  border-radius: var(--radius-xl);
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
 }
 
 .brand h1,
@@ -219,8 +219,8 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .tiny-btn {
-  padding: 8px 12px;
-  font-size: 0.85rem;
+  padding: 6px 10px;
+  font-size: 0.8rem;
 }
 
 button:hover {
@@ -228,17 +228,17 @@ button:hover {
 }
 
 .hero-strip {
-  margin-top: 18px;
-  border-radius: var(--radius-xl);
-  padding: 22px 24px;
+  margin-top: 10px;
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
 }
 
 .hero-strip h2 {
-  font-size: clamp(1.25rem, 4vw, 2rem);
+  font-size: clamp(1rem, 3vw, 1.4rem);
 }
 
 .hero-badges,
@@ -297,7 +297,7 @@ button:hover {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  margin: 18px 0;
+  margin: 10px 0;
   padding-bottom: 4px;
   position: relative;
 }
@@ -441,13 +441,13 @@ button:hover {
 
 .app-shell {
   display: grid;
-  gap: 18px;
+  gap: 12px;
   min-width: 0;
 }
 
 .panel {
-  border-radius: var(--radius-xl);
-  padding: 22px;
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
 }
 
 .panel-title,
@@ -493,8 +493,8 @@ button:hover {
 .assist-card,
 .prep-card,
 .prep-phase-block {
-  border-radius: var(--radius-lg);
-  padding: 18px;
+  border-radius: var(--radius-md);
+  padding: 14px;
 }
 
 .metric-card h3,
@@ -525,7 +525,7 @@ button:hover {
 .day-switcher,
 .filter-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -568,18 +568,18 @@ button:hover {
 .doc-stack,
 .backup-stack {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .timeline-sections {
-  gap: 18px;
+  gap: 12px;
 }
 
 .timeline-section {
   display: grid;
-  gap: 14px;
-  padding: 16px;
-  border-radius: var(--radius-lg);
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(127, 114, 105, 0.16);
   background: rgba(127, 114, 105, 0.05);
 }
@@ -598,8 +598,8 @@ button:hover {
 
 .activity-card {
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border-radius: var(--radius-sm);
+  padding: 12px;
   background: var(--surface-strong);
 }
 
