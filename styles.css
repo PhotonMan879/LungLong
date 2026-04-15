@@ -282,6 +282,7 @@ button:hover {
 .app-shell {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .panel {
@@ -1400,6 +1401,7 @@ html[data-theme="dark"] .rain-banner {
 .map-pane {
   display: none;
   flex: 1;
+  min-width: 0;
   height: calc(100vh - 120px);
   position: sticky;
   top: 24px;
@@ -1407,7 +1409,7 @@ html[data-theme="dark"] .rain-banner {
   overflow: hidden;
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
-  z-index: 10;
+  z-index: 1;
 }
 
 .map-pane[aria-hidden="false"] {
@@ -1487,17 +1489,7 @@ html[data-theme="dark"] .inline-add-place {
   margin-top: 8px;
   position: relative;
   width: 100%;
-  aspect-ratio: 16/9;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  background: var(--surface-strong);
-}
-
-.video-embed-wrapper {
-  margin-top: 8px;
-  position: relative;
-  width: 100%;
+  max-width: 480px;
   aspect-ratio: 16/9;
   border-radius: var(--radius-sm);
   overflow: hidden;
