@@ -684,6 +684,8 @@ function wireEvents() {
     if (action === "close-modal") closeModal();
     if (action === "open-maps") openInNewTab(mapsSearchUrl(target.dataset.query));
     if (action === "show-on-map") {
+      // Only pan when clicking the card itself, not child buttons
+      if (event.target.closest("button, a, input, textarea")) return;
       const lat = parseFloat(target.dataset.lat);
       const lng = parseFloat(target.dataset.lng);
       if (!isNaN(lat) && !isNaN(lng)) panMapTo(lat, lng, 15);

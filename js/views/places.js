@@ -74,7 +74,8 @@ function renderSavedCard(place, state, trip) {
   ` : "";
 
   return `
-    <article class="place-saved-card" id="place-${escapeHtml(place.id)}">
+    <article class="place-saved-card" id="place-${escapeHtml(place.id)}"
+      ${(place.lat && place.lng) ? `data-action="show-on-map" data-lat="${place.lat}" data-lng="${place.lng}" style="cursor:pointer"` : ''}>
       <div class="place-saved-top">
         <div class="place-saved-info">
           <span class="place-cat-emoji">${cat.emoji}</span>
@@ -128,7 +129,8 @@ function renderSavedCard(place, state, trip) {
 function renderRecCard(rec, added) {
   const cat = catMeta(rec.category);
   return `
-    <article class="place-rec-card ${added ? "rec-added" : ""}">
+    <article class="place-rec-card ${added ? "rec-added" : ""}"
+      ${(rec.lat && rec.lng) ? `data-action="show-on-map" data-lat="${rec.lat}" data-lng="${rec.lng}" style="cursor:pointer"` : ''}>
       <div class="place-rec-head">
         <span class="place-cat-emoji">${cat.emoji}</span>
         <button class="place-add-btn ${added ? "added" : ""}" type="button"
