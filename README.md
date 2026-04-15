@@ -57,6 +57,8 @@ npm run check
 - [STATUS.md](./STATUS.md) - งานที่เสร็จแล้วและสิ่งที่ยังไม่ทำ
 - [TESTING.md](./TESTING.md) - วิธีทดสอบหลักและ smoke checks
 - [HANDOFF.md](./HANDOFF.md) - context สำหรับคนมารับช่วงต่อ
+- [PROMPTS_WANDERLOG_INSPIRED.md](./PROMPTS_WANDERLOG_INSPIRED.md) - prompt pack สำหรับฟีเจอร์แรงบันดาลใจจาก Wanderlog
+- [PROMPTS_IMPLEMENTATION_PHASES.md](./PROMPTS_IMPLEMENTATION_PHASES.md) - prompt แบบแบ่งเฟสและเน้น implementation
 
 ## หมายเหตุ
 
