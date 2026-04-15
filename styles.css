@@ -37,8 +37,10 @@ html[data-theme="dark"] {
 
 body {
   margin: 0;
-  font-family: "Inter", "Segoe UI", sans-serif;
+  font-family: "Sarabun", "Inter", sans-serif;
   color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
   background:
     radial-gradient(circle at top left, rgba(223, 138, 77, 0.18), transparent 25%),
     radial-gradient(circle at top right, rgba(184, 52, 47, 0.12), transparent 30%),
@@ -102,8 +104,24 @@ a {
 .day-title,
 .panel-title {
   margin: 0;
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
-  letter-spacing: -0.03em;
+  font-family: "Kanit", sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6,
+.nav-tab,
+.pill-btn,
+.primary-btn,
+.secondary-btn,
+.filter-chip,
+.status-chip,
+.badge,
+.meta-chip,
+.hamburger-btn,
+.eyebrow,
+.hero-kicker {
+  font-family: "Kanit", sans-serif;
 }
 
 .eyebrow,
