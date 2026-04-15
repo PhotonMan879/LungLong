@@ -656,29 +656,9 @@ button:hover {
   opacity: 0.7;
 }
 
-/* Action row: hidden by default, show on hover or focus-within */
+/* Action row: always visible */
 .compact-actions {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  margin-top: 0;
-  transition: max-height 200ms ease, opacity 150ms ease, margin-top 150ms ease;
-}
-
-.activity-card:hover .compact-actions,
-.activity-card:focus-within .compact-actions {
-  max-height: 50px;
-  opacity: 1;
-  margin-top: 6px;
-}
-
-/* Always show on touch devices */
-@media (hover: none) {
-  .compact-actions {
-    max-height: 50px;
-    opacity: 1;
-    margin-top: 6px;
-  }
+  margin-top: 8px;
 }
 
 .compact-note {
