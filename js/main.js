@@ -207,9 +207,18 @@ function render() {
   const trip = getActiveTrip();
   applyTheme();
 
-  primaryNav.querySelectorAll("[data-view]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === state.view);
-  });
+  if (primaryNav) {
+    primaryNav.querySelectorAll("[data-view]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.view === state.view);
+    });
+
+    // Update hamburger label with current view
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    if (hamburgerBtn) {
+      const activeTab = primaryNav.querySelector("[data-view].active");
+      hamburgerBtn.setAttribute("data-label", activeTab ? activeTab.textContent : "Menu");
+    }
+  }
 
   tripSelect.innerHTML = Object.values(state.trips)
     .map((item) => `<option value="${item.id}" ${item.id === state.activeTripId ? "selected" : ""}>${item.name}</option>`)
@@ -642,7 +651,36 @@ function wireEvents() {
   themeToggle.addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; persist(); });
   tripSelect.addEventListener("change", (event) => { state.activeTripId = event.target.value; saveState(state); render(); });
   tripNewBtn.addEventListener("click", () => openTemplatePicker());
-  primaryNav.addEventListener("click", (event) => { const button = event.target.closest("[data-view]"); if (button) setView(button.dataset.view); });
+  primaryNav.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-view]");
+    if (button) {
+      setView(button.dataset.view);
+      // Close hamburger menu on mobile
+      const navMenu = document.getElementById("nav-menu");
+      const hamburgerBtn = document.getElementById("hamburger-btn");
+      if (navMenu && hamburgerBtn) {
+        navMenu.classList.remove("open");
+        hamburgerBtn.setAttribute("aria-expanded", "false");
+      }
+    }
+  });
+
+  // Hamburger toggle
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const navMenu = document.getElementById("nav-menu");
+  if (hamburgerBtn && navMenu) {
+    hamburgerBtn.addEventListener("click", () => {
+      const isOpen = navMenu.classList.toggle("open");
+      hamburgerBtn.setAttribute("aria-expanded", String(isOpen));
+    });
+    // Close on outside click
+    document.addEventListener("click", (event) => {
+      if (!primaryNav.contains(event.target)) {
+        navMenu.classList.remove("open");
+        hamburgerBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
   modalForm.addEventListener("submit", handleModalSubmit);
   wireLocationSearch();
   modalShell.addEventListener("click", (event) => {

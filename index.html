@@ -45,17 +45,22 @@
       </section>
 
       <nav class="nav-tabs" id="primary-nav">
-        <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
-        <button class="nav-tab" data-view="assist" type="button">Assist</button>
-        <button class="nav-tab" data-view="prep" type="button">Prep</button>
-        <button class="nav-tab" data-view="itinerary" type="button">Itinerary</button>
-        <button class="nav-tab" data-view="transport" type="button">Transport</button>
-        <button class="nav-tab" data-view="places" type="button">Places</button>
-        <button class="nav-tab" data-view="backup" type="button">Backup Spots</button>
-        <button class="nav-tab" data-view="docs" type="button">Docs</button>
-        <button class="nav-tab" data-view="checklist" type="button">Checklist</button>
-        <button class="nav-tab" data-view="budget" type="button">Budget</button>
-        <button class="nav-tab" data-view="settings" type="button">Settings</button>
+        <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="เมนู" aria-expanded="false">
+          <span class="hamburger-icon"></span>
+        </button>
+        <div class="nav-menu" id="nav-menu">
+          <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
+          <button class="nav-tab" data-view="assist" type="button">Assist</button>
+          <button class="nav-tab" data-view="prep" type="button">Prep</button>
+          <button class="nav-tab" data-view="itinerary" type="button">Itinerary</button>
+          <button class="nav-tab" data-view="transport" type="button">Transport</button>
+          <button class="nav-tab" data-view="places" type="button">Places</button>
+          <button class="nav-tab" data-view="backup" type="button">Backup Spots</button>
+          <button class="nav-tab" data-view="docs" type="button">Docs</button>
+          <button class="nav-tab" data-view="checklist" type="button">Checklist</button>
+          <button class="nav-tab" data-view="budget" type="button">Budget</button>
+          <button class="nav-tab" data-view="settings" type="button">Settings</button>
+        </div>
       </nav>
 
       <main id="app" class="app-shell" aria-live="polite"></main>

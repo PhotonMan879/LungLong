@@ -26,6 +26,7 @@ Object.defineProperty(globalThis, "document", {
         files: [],
         addEventListener() {},
         querySelectorAll() { return []; },
+        querySelector() { return null; },
         innerHTML: "",
         classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
         textContent: "",
