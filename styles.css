@@ -1428,9 +1428,9 @@ body:has(.map-pane[aria-hidden="false"]) .split-pane-container {
 }
 
 body:has(.map-pane[aria-hidden="false"]) .split-left {
-  flex: 0 0 540px;
-  width: 540px;
-  max-width: 540px;
+  flex: 0 0 min(600px, 46vw);
+  width: min(600px, 46vw);
+  max-width: min(600px, 46vw);
   min-width: 0;
   overflow-y: auto;
   height: 100vh;

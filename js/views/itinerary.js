@@ -24,8 +24,15 @@ function getBucketMeta(bucket) {
 
 function renderActivityCard(activity, trip) {
   const activityState = trip.activities[activity.id] || { checked: false, note: "", links: [] };
+  // Look up coordinates from recommendedPlaces or placesList by title match
+  const recMap = new Map((trip.recommendedPlaces || []).map((r) => [r.name, r]));
+  const savedMap = new Map((trip.placesList || []).map((p) => [p.name, p]));
+  const coordSrc = recMap.get(activity.title) || savedMap.get(activity.title);
+  const mapAttrs = coordSrc?.lat && coordSrc?.lng
+    ? `data-action="show-on-map" data-lat="${coordSrc.lat}" data-lng="${coordSrc.lng}" style="cursor:pointer"`
+    : "";
   return `
-    <article class="activity-card ${activityState.checked ? "checked" : ""}">
+    <article class="activity-card ${activityState.checked ? "checked" : ""}" ${mapAttrs}>
       <div class="activity-top">
         <div class="activity-title">
           <div>${activity.icon}</div>
