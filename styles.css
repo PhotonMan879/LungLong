@@ -433,6 +433,7 @@ button:hover {
 
 .app-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
 }
@@ -440,6 +441,8 @@ button:hover {
 .panel {
   border-radius: var(--radius-lg);
   padding: 16px 18px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .panel-title,
@@ -604,7 +607,14 @@ button:hover {
   opacity: 0.6;
 }
 
-/* Compact card layout */
+/* Activity top layout — applies to all activity cards */
+.activity-top {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Compact card layout (alias kept for backwards compat) */
 .activity-card.compact .activity-top {
   display: flex;
   gap: 8px;
@@ -1584,7 +1594,20 @@ html[data-theme="dark"] .rain-banner {
   font-family: "SFMono-Regular", ui-monospace, monospace;
 }
 
-@media (max-width: 920px) {
+/* ── 2-col grid at 601–840px ──────────────────── */
+@media (min-width: 601px) and (max-width: 840px) {
+  .grid-3,
+  .metrics-grid,
+  .backup-grid,
+  .docs-grid,
+  .assist-grid,
+  .prep-deadline-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Full collapse at ≤600px ──────────────────── */
+@media (max-width: 600px) {
   .grid-3,
   .metrics-grid,
   .backup-grid,
@@ -1595,7 +1618,9 @@ html[data-theme="dark"] .rain-banner {
   .prep-deadline-grid {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 840px) {
   .topbar,
   .hero-strip,
   .day-header,
@@ -1758,6 +1783,8 @@ html[data-theme="dark"] .inline-add-place {
   overflow-x: auto;
   padding-bottom: 8px;
   scrollbar-width: thin;
+  min-width: 0;
+  width: 100%;
 }
 
 .inline-rec-card {
