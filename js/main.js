@@ -830,38 +830,47 @@ function wireAuthEvents() {
 
 async function boot() {
   applyTheme();
-
-  const session = await getSession();
-  if (session) {
-    currentUserId = session.user.id;
-    await loadCloudTrips();
-  }
-
   render();
   wireEvents();
   wireAuthEvents();
   registerServiceWorker();
-  updateAuthBtn();
 
-  if (!session && !localStorage.getItem("ll-auth-skipped")) {
-    showAuthOverlay();
-  }
-
-  supabase.auth.onAuthStateChange(async (event, newSession) => {
-    if (event === "SIGNED_IN" && newSession) {
-      currentUserId = newSession.user.id;
-      localStorage.removeItem("ll-auth-skipped");
+  try {
+    const session = await getSession();
+    if (session) {
+      currentUserId = session.user.id;
       await loadCloudTrips();
-      hideAuthOverlay();
-      updateAuthBtn();
       render();
-      showToast("เข้าสู่ระบบสำเร็จ ✓");
     }
-    if (event === "SIGNED_OUT") {
-      currentUserId = null;
-      updateAuthBtn();
+    updateAuthBtn();
+
+    if (!session && !localStorage.getItem("ll-auth-skipped")) {
+      showAuthOverlay();
     }
-  });
+
+    supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (event === "SIGNED_IN" && newSession) {
+        currentUserId = newSession.user.id;
+        localStorage.removeItem("ll-auth-skipped");
+        await loadCloudTrips();
+        hideAuthOverlay();
+        updateAuthBtn();
+        render();
+        showToast("เข้าสู่ระบบสำเร็จ ✓");
+      }
+      if (event === "SIGNED_OUT") {
+        currentUserId = null;
+        updateAuthBtn();
+      }
+    });
+  } catch (err) {
+    console.error("[boot] Supabase error:", err);
+    updateAuthBtn();
+    // แสดง overlay ถ้า Supabase โหลดไม่สำเร็จและยังไม่ได้ skip
+    if (!localStorage.getItem("ll-auth-skipped")) {
+      showAuthOverlay();
+    }
+  }
 }
 
 boot();
