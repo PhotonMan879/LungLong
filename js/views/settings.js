@@ -42,6 +42,35 @@ export function renderSettings(state, trip) {
 
     <section class="settings-card">
       <div>
+        <p class="tiny">Trip profile</p>
+        <h2 class="section-title">Active trip settings</h2>
+        <p class="muted">แก้ข้อมูลหลักของทริปที่ใช้งานอยู่ เพื่อให้ dashboard และ workspace สะท้อนทริปนี้จริงๆ</p>
+      </div>
+      <div class="doc-form">
+        <div class="row">
+          <input id="trip-title-input" type="text" value="${trip.name}" placeholder="ชื่อทริป">
+          <input id="trip-base-input" type="text" value="${trip.info.base || ""}" placeholder="Base เช่น Shin-Osaka Base">
+        </div>
+        <div class="row">
+          <input id="trip-window-input" type="text" value="${trip.info.window || ""}" placeholder="ช่วงทริป">
+          <input id="trip-start-date-input" type="date" value="${trip.info.startDate || ""}" placeholder="วันที่เริ่ม">
+        </div>
+        <div class="row">
+          <input id="trip-flight-out-input" type="text" value="${trip.info.flightOut || ""}" placeholder="เที่ยวบินขาไป">
+          <input id="trip-flight-back-input" type="text" value="${trip.info.flightBack || ""}" placeholder="เที่ยวบินขากลับ">
+        </div>
+        <div class="row">
+          <input id="trip-pass-input" type="text" value="${trip.info.railPass || ""}" placeholder="Rail pass">
+          <input id="trip-traveler-input" type="text" value="${trip.info.traveler || ""}" placeholder="ผู้เดินทาง">
+        </div>
+        <div class="settings-actions">
+          <button class="primary-btn" type="button" data-action="save-trip-profile">บันทึก trip profile</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <div>
         <p class="tiny">Project notes</p>
         <h2 class="section-title">What Project 2 changes</h2>
       </div>

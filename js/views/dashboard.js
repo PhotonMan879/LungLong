@@ -8,6 +8,8 @@ export function renderDashboard(state, trip) {
   const customCount = trip.customSpots.length;
   const planTotal = Object.values(trip.budgetPlan).reduce((sum, value) => sum + Number(value || 0), 0);
   const actualTotal = Object.values(trip.budgetActual).reduce((sum, value) => sum + Number(value || 0), 0);
+  const diffDays = Math.ceil((new Date(trip.info.startDate).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000);
+  const countdownLabel = diffDays > 0 ? `อีก ${diffDays} วัน` : diffDays === 0 ? "เริ่มวันนี้" : `ผ่านมา ${Math.abs(diffDays)} วัน`;
 
   return `
     <section class="metrics-grid">
@@ -26,6 +28,11 @@ export function renderDashboard(state, trip) {
         <p class="tiny">Budget snapshot</p>
         <div class="metric-value">${currency(actualTotal)}</div>
         <p class="muted">ใช้จริงจากแผน ${currency(planTotal)} (${actualTotal - planTotal >= 0 ? "+" : ""}${currency(actualTotal - planTotal).replace("¥", "")})</p>
+      </article>
+      <article class="metric-card">
+        <p class="tiny">Countdown</p>
+        <div class="metric-value">${countdownLabel}</div>
+        <p class="muted">เริ่มทริปวันที่ ${trip.info.startDate} · base: ${trip.info.base}</p>
       </article>
     </section>
 
@@ -94,6 +101,11 @@ export function renderDashboard(state, trip) {
             <p class="tiny">Rail pass days</p>
             <div class="metric-value">${trip.days.filter((day) => day.pass).length}</div>
             <p class="muted">วันที่ควรเช็ก route และเวลารถล่วงหน้า</p>
+          </article>
+          <article class="metric-card">
+            <p class="tiny">Next prep</p>
+            <div class="metric-value">${trip.info.flightOut.split(" ")[0] || "Trip"}</div>
+            <p class="muted">เช็กตั๋ว, เอกสาร, และ route ก่อนออกเดินทางจากหน้า settings</p>
           </article>
         </div>
       </article>

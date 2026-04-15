@@ -322,6 +322,24 @@ function handleBudgetInput(target) {
   saveState(state);
 }
 
+function saveTripProfileFromSettings() {
+  const trip = getActiveTrip();
+  const title = document.getElementById("trip-title-input")?.value?.trim();
+  if (!title) return showToast("กรอกชื่อทริปก่อน");
+
+  trip.name = title;
+  trip.info.title = title;
+  trip.info.base = document.getElementById("trip-base-input")?.value?.trim() || "";
+  trip.info.window = document.getElementById("trip-window-input")?.value?.trim() || "";
+  trip.info.startDate = document.getElementById("trip-start-date-input")?.value?.trim() || trip.info.startDate;
+  trip.info.flightOut = document.getElementById("trip-flight-out-input")?.value?.trim() || "";
+  trip.info.flightBack = document.getElementById("trip-flight-back-input")?.value?.trim() || "";
+  trip.info.railPass = document.getElementById("trip-pass-input")?.value?.trim() || "";
+  trip.info.traveler = document.getElementById("trip-traveler-input")?.value?.trim() || "";
+  persist();
+  showToast("บันทึก trip profile แล้ว");
+}
+
 function handleModalSubmit(event) {
   event.preventDefault();
   const type = modalTypeInput.value;
@@ -394,6 +412,7 @@ function wireEvents() {
     if (action === "set-theme") { state.theme = target.dataset.theme; persist(); }
     if (action === "create-trip") openTripModal("create-trip");
     if (action === "rename-trip") openTripModal("rename-trip");
+    if (action === "save-trip-profile") saveTripProfileFromSettings();
     if (action === "delete-trip") {
       if (Object.keys(state.trips).length === 1) return showToast("ต้องมีอย่างน้อย 1 ทริป");
       delete state.trips[state.activeTripId];
