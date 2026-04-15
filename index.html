@@ -13,56 +13,57 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <p class="eyebrow">Project 2 / Hackathon Build</p>
-        <h1>Kansai Trip App 2026</h1>
-        <p class="subtle">เวอร์ชันใหม่แบบหลายไฟล์, local-first, และเน้นใช้ระหว่างเดินทางจริง</p>
-      </div>
-      <div class="topbar-actions">
-        <label class="search-chip trip-chip">
-          <span>ทริปที่กำลังใช้งาน</span>
-          <select id="trip-select" class="field"></select>
-        </label>
-        <label class="search-chip">
-          <span>ค้นหา</span>
-          <input id="global-search" type="search" placeholder="สถานที่, เมือง, ของกิน, pass...">
-        </label>
-        <button id="trip-new-btn" class="secondary-btn" type="button">New Trip</button>
-        <button id="theme-toggle" class="ghost-btn" type="button">Dark</button>
-        <button id="auth-btn" class="ghost-btn" type="button">Login</button>
-      </div>
-    </header>
+  <div class="split-pane-container">
+    <div class="split-left shell">
+      <header class="topbar">
+        <div class="brand">
+          <p class="eyebrow">Project 2 / Hackathon Build</p>
+          <h1>Kansai Trip App 2026</h1>
+          <p class="subtle">เวอร์ชันใหม่แบบหลายไฟล์, local-first, และเน้นใช้ระหว่างเดินทางจริง</p>
+        </div>
+        <div class="topbar-actions">
+          <label class="search-chip trip-chip">
+            <span>ทริปที่กำลังใช้งาน</span>
+            <select id="trip-select" class="field"></select>
+          </label>
+          <label class="search-chip">
+            <span>ค้นหา</span>
+            <input id="global-search" type="search" placeholder="สถานที่, เมือง, ของกิน, pass...">
+          </label>
+          <button id="trip-new-btn" class="secondary-btn" type="button">New Trip</button>
+          <button id="theme-toggle" class="ghost-btn" type="button">Dark</button>
+          <button id="auth-btn" class="ghost-btn" type="button">Login</button>
+        </div>
+      </header>
 
-    <section class="hero-strip">
-      <div>
-        <p class="hero-kicker">Kansai 20-26 Nov 2026</p>
-        <h2>Dashboard + Today View + Import/Export + Modular Architecture</h2>
-      </div>
-      <div class="hero-badges" id="hero-badges"></div>
-    </section>
+      <section class="hero-strip">
+        <div>
+          <p class="hero-kicker">Kansai 20-26 Nov 2026</p>
+          <h2>Dashboard + Today View + Import/Export + Modular Architecture</h2>
+        </div>
+        <div class="hero-badges" id="hero-badges"></div>
+      </section>
 
-    <nav class="nav-tabs" id="primary-nav">
-      <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
-      <button class="nav-tab" data-view="assist" type="button">Assist</button>
-      <button class="nav-tab" data-view="prep" type="button">Prep</button>
-      <button class="nav-tab" data-view="itinerary" type="button">Itinerary</button>
-      <button class="nav-tab" data-view="transport" type="button">Transport</button>
-      <button class="nav-tab" data-view="places" type="button">Places</button>
-      <button class="nav-tab" data-view="backup" type="button">Backup Spots</button>
-      <button class="nav-tab" data-view="docs" type="button">Docs</button>
-      <button class="nav-tab" data-view="checklist" type="button">Checklist</button>
-      <button class="nav-tab" data-view="budget" type="button">Budget</button>
-      <button class="nav-tab" data-view="settings" type="button">Settings</button>
-    </nav>
+      <nav class="nav-tabs" id="primary-nav">
+        <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
+        <button class="nav-tab" data-view="assist" type="button">Assist</button>
+        <button class="nav-tab" data-view="prep" type="button">Prep</button>
+        <button class="nav-tab" data-view="itinerary" type="button">Itinerary</button>
+        <button class="nav-tab" data-view="transport" type="button">Transport</button>
+        <button class="nav-tab" data-view="places" type="button">Places</button>
+        <button class="nav-tab" data-view="backup" type="button">Backup Spots</button>
+        <button class="nav-tab" data-view="docs" type="button">Docs</button>
+        <button class="nav-tab" data-view="checklist" type="button">Checklist</button>
+        <button class="nav-tab" data-view="budget" type="button">Budget</button>
+        <button class="nav-tab" data-view="settings" type="button">Settings</button>
+      </nav>
 
-    <div class="split-pane-container">
       <main id="app" class="app-shell" aria-live="polite"></main>
-      <aside id="map-pane" class="map-pane" aria-hidden="true">
-        <div id="map-container" class="map-container"></div>
-      </aside>
     </div>
+
+    <aside id="map-pane" class="map-pane" aria-hidden="true">
+      <div id="map-container" class="map-container"></div>
+    </aside>
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
