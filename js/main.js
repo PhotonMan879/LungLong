@@ -16,6 +16,26 @@ const themeToggle = document.getElementById("theme-toggle");
 const primaryNav = document.getElementById("primary-nav");
 const heroBadges = document.getElementById("hero-badges");
 const toast = document.getElementById("toast");
+const modalShell = document.getElementById("app-modal");
+const modalForm = document.getElementById("modal-form");
+const modalTitle = document.getElementById("modal-title");
+const modalKicker = document.getElementById("modal-kicker");
+
+const modalTypeInput = document.getElementById("modal-type");
+const modalTargetIdInput = document.getElementById("modal-target-id");
+const modalNameInput = document.getElementById("modal-name");
+const modalRegionInput = document.getElementById("modal-region");
+const modalCategoryInput = document.getElementById("modal-category");
+const modalTimeInput = document.getElementById("modal-time");
+const modalUrlInput = document.getElementById("modal-url");
+const modalTextInput = document.getElementById("modal-text");
+
+const modalNameWrap = document.getElementById("modal-name-wrap");
+const modalRegionWrap = document.getElementById("modal-region-wrap");
+const modalCategoryWrap = document.getElementById("modal-category-wrap");
+const modalTimeWrap = document.getElementById("modal-time-wrap");
+const modalUrlWrap = document.getElementById("modal-url-wrap");
+const modalTextWrap = document.getElementById("modal-text-wrap");
 
 let state = loadState();
 let toastTimer = null;
@@ -42,6 +62,48 @@ function setView(view) {
   state.view = view;
   saveState(state);
   render();
+}
+
+function setFieldVisibility(wrap, visible) {
+  wrap.classList.toggle("hidden", !visible);
+}
+
+function closeModal() {
+  modalShell.classList.remove("open");
+  modalShell.setAttribute("aria-hidden", "true");
+  modalForm.reset();
+  modalTypeInput.value = "";
+  modalTargetIdInput.value = "";
+}
+
+function openModal(config) {
+  modalTitle.textContent = config.title;
+  modalKicker.textContent = config.kicker;
+  modalTypeInput.value = config.type;
+  modalTargetIdInput.value = config.targetId || "";
+
+  setFieldVisibility(modalNameWrap, Boolean(config.fields.name));
+  setFieldVisibility(modalRegionWrap, Boolean(config.fields.region));
+  setFieldVisibility(modalCategoryWrap, Boolean(config.fields.category));
+  setFieldVisibility(modalTimeWrap, Boolean(config.fields.time));
+  setFieldVisibility(modalUrlWrap, Boolean(config.fields.url));
+  setFieldVisibility(modalTextWrap, Boolean(config.fields.text));
+
+  modalNameInput.value = config.values?.name || "";
+  modalRegionInput.value = config.values?.region || "";
+  modalCategoryInput.value = config.values?.category || "";
+  modalTimeInput.value = config.values?.time || "";
+  modalUrlInput.value = config.values?.url || "";
+  modalTextInput.value = config.values?.text || "";
+
+  modalShell.classList.add("open");
+  modalShell.setAttribute("aria-hidden", "false");
+
+  const preferredTarget =
+    (config.fields.text && modalTextInput) ||
+    (config.fields.url && modalUrlInput) ||
+    (config.fields.name && modalNameInput);
+  preferredTarget?.focus();
 }
 
 function render() {
@@ -74,22 +136,41 @@ function getBackupSpotById(id) {
   return BACKUP_REGIONS.flatMap((region) => region.spots).find((spot) => spot.id === id);
 }
 
-function addCustomSpotFromPrompt(base = null) {
-  const name = window.prompt("ชื่อสถานที่", base?.name || "");
-  if (!name) return;
-  const region = window.prompt("region / category ของมัน", base?.region || "Custom spot");
-  const desc = window.prompt("โน้ตสั้นๆ", base?.desc || "");
-  const time = window.prompt("ใช้เวลาเท่าไร", base?.time || "flexible");
-  const cat = window.prompt("หมวดหมู่", base?.cat || "custom");
+function openCustomSpotModal(base = null) {
+  openModal({
+    type: "custom-spot",
+    kicker: base ? "Shortlist backup spot" : "Add custom spot",
+    title: base ? "เพิ่มจาก backup list" : "เพิ่มสถานที่เอง",
+    targetId: base?.id || "",
+    fields: { name: true, region: true, category: true, time: true, url: false, text: true },
+    values: {
+      name: base?.name || "",
+      region: base?.region || "Custom spot",
+      category: base?.cat || "custom",
+      time: base?.time || "flexible",
+      text: base?.desc || ""
+    }
+  });
+}
+
+function saveCustomSpotFromModal() {
+  const name = modalNameInput.value.trim();
+  if (!name) {
+    showToast("กรอกชื่อสถานที่ก่อน");
+    modalNameInput.focus();
+    return;
+  }
+
   state.customSpots.unshift({
     id: uid("spot"),
     name,
-    region: region || "Custom spot",
-    desc: desc || "",
-    time: time || "flexible",
-    cat: cat || "custom"
+    region: modalRegionInput.value.trim() || "Custom spot",
+    desc: modalTextInput.value.trim(),
+    time: modalTimeInput.value.trim() || "flexible",
+    cat: modalCategoryInput.value.trim() || "custom"
   });
   persist();
+  closeModal();
   showToast("เพิ่ม custom spot แล้ว");
 }
 
@@ -203,20 +284,25 @@ function handleActivityToggle(activityId) {
 
 function handleActivityNote(activityId) {
   const current = state.activities[activityId] || { checked: false, note: "", links: [] };
-  const next = window.prompt("Note สำหรับกิจกรรมนี้", current.note || "");
-  if (next === null) return;
-  state.activities[activityId] = { ...current, note: next.trim() };
-  persist();
-  showToast("อัปเดต note แล้ว");
+  openModal({
+    type: "activity-note",
+    kicker: "Activity note",
+    title: "แก้โน้ตกิจกรรม",
+    targetId: activityId,
+    fields: { name: false, region: false, category: false, time: false, url: false, text: true },
+    values: { text: current.note || "" }
+  });
 }
 
 function handleActivityLink(activityId) {
-  const current = state.activities[activityId] || { checked: false, note: "", links: [] };
-  const next = window.prompt("วาง URL ที่เกี่ยวข้องกับกิจกรรมนี้");
-  if (!next) return;
-  state.activities[activityId] = { ...current, links: [...(current.links || []), next.trim()] };
-  persist();
-  showToast("เพิ่ม link แล้ว");
+  openModal({
+    type: "activity-link",
+    kicker: "Activity link",
+    title: "เพิ่มลิงก์กิจกรรม",
+    targetId: activityId,
+    fields: { name: false, region: false, category: false, time: false, url: true, text: false },
+    values: { url: "" }
+  });
 }
 
 function removeActivityLink(activityId, index) {
@@ -261,6 +347,56 @@ function handleBudgetInput(target) {
   saveState(state);
 }
 
+function handleModalSubmit(event) {
+  event.preventDefault();
+  const type = modalTypeInput.value;
+  const targetId = modalTargetIdInput.value;
+
+  if (type === "custom-spot") {
+    saveCustomSpotFromModal();
+    return;
+  }
+
+  if (type === "activity-note") {
+    const current = state.activities[targetId] || { checked: false, note: "", links: [] };
+    state.activities[targetId] = { ...current, note: modalTextInput.value.trim() };
+    persist();
+    closeModal();
+    showToast("อัปเดต note แล้ว");
+    return;
+  }
+
+  if (type === "activity-link") {
+    const next = modalUrlInput.value.trim();
+    if (!next) {
+      showToast("วาง URL ก่อน");
+      modalUrlInput.focus();
+      return;
+    }
+    const current = state.activities[targetId] || { checked: false, note: "", links: [] };
+    state.activities[targetId] = { ...current, links: [...(current.links || []), next] };
+    persist();
+    closeModal();
+    showToast("เพิ่ม link แล้ว");
+  }
+}
+
+function updateDocFileMeta(file) {
+  const meta = document.getElementById("doc-file-meta");
+  const nameInput = document.getElementById("doc-name");
+  if (!meta) return;
+
+  if (!file) {
+    meta.textContent = "ยังไม่ได้เลือกไฟล์";
+    return;
+  }
+
+  meta.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB`;
+  if (nameInput && !nameInput.value.trim()) {
+    nameInput.value = file.name.replace(/\.[^.]+$/, "");
+  }
+}
+
 function wireEvents() {
   searchInput.value = state.search || "";
   searchInput.addEventListener("input", (event) => {
@@ -278,6 +414,19 @@ function wireEvents() {
     const button = event.target.closest("[data-view]");
     if (!button) return;
     setView(button.dataset.view);
+  });
+
+  modalForm.addEventListener("submit", handleModalSubmit);
+  modalShell.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-action='close-modal']");
+    if (!target) return;
+    closeModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modalShell.classList.contains("open")) {
+      closeModal();
+    }
   });
 
   app.addEventListener("click", async (event) => {
@@ -299,13 +448,14 @@ function wireEvents() {
     if (action === "edit-note") handleActivityNote(target.dataset.activityId);
     if (action === "add-link") handleActivityLink(target.dataset.activityId);
     if (action === "remove-link") removeActivityLink(target.dataset.activityId, Number(target.dataset.linkIndex));
+    if (action === "close-modal") closeModal();
     if (action === "open-maps") openInNewTab(mapsSearchUrl(target.dataset.query));
     if (action === "open-research") openInNewTab(researchUrl(target.dataset.query));
     if (action === "save-backup-spot") {
       const spot = getBackupSpotById(target.dataset.spotId);
-      if (spot) addCustomSpotFromPrompt({ ...spot, region: "Shortlisted backup" });
+      if (spot) openCustomSpotModal({ ...spot, region: "Shortlisted backup" });
     }
-    if (action === "add-custom-spot") addCustomSpotFromPrompt();
+    if (action === "add-custom-spot") openCustomSpotModal();
     if (action === "remove-custom-spot") {
       state.customSpots = state.customSpots.filter((spot) => spot.id !== target.dataset.spotId);
       persist();
@@ -349,6 +499,38 @@ function wireEvents() {
         target.value = "";
       }
     }
+
+    if (target.id === "doc-file") {
+      updateDocFileMeta(target.files?.[0] || null);
+    }
+  });
+
+  app.addEventListener("dragover", (event) => {
+    const zone = event.target.closest("#doc-dropzone");
+    if (!zone) return;
+    event.preventDefault();
+    zone.classList.add("dragover");
+  });
+
+  app.addEventListener("dragleave", (event) => {
+    const zone = event.target.closest("#doc-dropzone");
+    if (!zone) return;
+    zone.classList.remove("dragover");
+  });
+
+  app.addEventListener("drop", (event) => {
+    const zone = event.target.closest("#doc-dropzone");
+    if (!zone) return;
+    event.preventDefault();
+    zone.classList.remove("dragover");
+    const fileInput = document.getElementById("doc-file");
+    const file = event.dataTransfer?.files?.[0];
+    if (!fileInput || !file) return;
+
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    updateDocFileMeta(file);
   });
 }
 

@@ -49,6 +49,58 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <div id="app-modal" class="modal-shell" aria-hidden="true">
+    <div class="modal-backdrop" data-action="close-modal"></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <div>
+          <p id="modal-kicker" class="tiny">Quick edit</p>
+          <h2 id="modal-title" class="section-title">Edit</h2>
+        </div>
+        <button class="ghost-btn" type="button" data-action="close-modal">ปิด</button>
+      </div>
+      <form id="modal-form" class="modal-form">
+        <input id="modal-type" type="hidden">
+        <input id="modal-target-id" type="hidden">
+
+        <label id="modal-name-wrap" class="modal-field">
+          <span>ชื่อ</span>
+          <input id="modal-name" class="field" type="text" placeholder="ชื่อรายการ">
+        </label>
+
+        <label id="modal-region-wrap" class="modal-field">
+          <span>Region</span>
+          <input id="modal-region" class="field" type="text" placeholder="Osaka / Kyoto / Custom">
+        </label>
+
+        <label id="modal-category-wrap" class="modal-field">
+          <span>หมวดหมู่</span>
+          <input id="modal-category" class="field" type="text" placeholder="custom / food / view">
+        </label>
+
+        <label id="modal-time-wrap" class="modal-field">
+          <span>ใช้เวลา</span>
+          <input id="modal-time" class="field" type="text" placeholder="1-2 ชม.">
+        </label>
+
+        <label id="modal-url-wrap" class="modal-field">
+          <span>URL</span>
+          <input id="modal-url" class="field" type="url" placeholder="https://...">
+        </label>
+
+        <label id="modal-text-wrap" class="modal-field">
+          <span>รายละเอียด</span>
+          <textarea id="modal-text" class="field textarea-field" rows="5" placeholder="เขียนรายละเอียดที่ต้องการ"></textarea>
+        </label>
+
+        <div class="modal-actions">
+          <button class="secondary-btn" type="button" data-action="close-modal">ยกเลิก</button>
+          <button class="primary-btn" type="submit">บันทึก</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

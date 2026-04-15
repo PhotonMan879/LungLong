@@ -557,6 +557,88 @@ button:hover {
   transform: translateY(0);
 }
 
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: none;
+}
+
+.modal-shell.open {
+  display: block;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 18, 0.56);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(560px, calc(100vw - 24px));
+  margin: 6vh auto 0;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.modal-head,
+.modal-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.modal-field {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.textarea-field {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.modal-field.hidden {
+  display: none;
+}
+
+.file-drop {
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: rgba(127, 114, 105, 0.05);
+  display: grid;
+  gap: 10px;
+}
+
+.file-drop.dragover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.file-drop input[type="file"] {
+  display: block;
+}
+
+.file-meta {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
 .empty-state {
   text-align: center;
   padding: 28px 18px;

@@ -14,7 +14,11 @@ export function renderDocs(state) {
         <div class="doc-form" style="margin-top:16px;">
           <input id="doc-name" type="text" placeholder="ชื่อเอกสาร เช่น Hotel Booking">
           <input id="doc-tags" type="text" placeholder="tags คั่นด้วย comma เช่น hotel, flight, pass">
-          <input id="doc-file" type="file" accept=".pdf,image/*">
+          <label id="doc-dropzone" class="file-drop">
+            <span>ลากไฟล์มาวางตรงนี้ หรือกดเลือกไฟล์</span>
+            <input id="doc-file" type="file" accept=".pdf,image/*">
+            <span id="doc-file-meta" class="file-meta">ยังไม่ได้เลือกไฟล์</span>
+          </label>
           <button class="primary-btn" type="button" data-action="save-doc">เพิ่มเอกสาร</button>
         </div>
       </article>

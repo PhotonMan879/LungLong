@@ -25,16 +25,20 @@ Object.defineProperty(globalThis, "document", {
         addEventListener() {},
         querySelectorAll() { return []; },
         innerHTML: "",
-        classList: { add() {}, remove() {}, toggle() {} },
+        classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
         textContent: "",
         click() {},
+        reset() {},
+        focus() {},
+        setAttribute() {},
         matches() { return false; }
       };
     },
     documentElement: { dataset: {} },
     createElement() {
       return { click() {} };
-    }
+    },
+    addEventListener() {}
   },
   configurable: true
 });
