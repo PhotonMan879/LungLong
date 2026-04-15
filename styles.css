@@ -1543,6 +1543,43 @@ html[data-theme="dark"] .inline-add-place {
   z-index: 0;
 }
 
+/* Location search in modal */
+.location-results {
+  margin-top: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: var(--surface-strong);
+}
+.location-results:empty { display: none; }
+.loc-result-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.loc-result-item:last-child { border-bottom: none; }
+.loc-result-item:hover { background: var(--surface-hover, var(--surface)); }
+.loc-no-result {
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.location-hint {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
 .embed-toolbar {
   display: flex;
   justify-content: space-between;

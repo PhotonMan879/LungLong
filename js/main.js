@@ -46,6 +46,12 @@ const modalCategoryWrap = document.getElementById("modal-category-wrap");
 const modalTimeWrap = document.getElementById("modal-time-wrap");
 const modalUrlWrap = document.getElementById("modal-url-wrap");
 const modalTextWrap = document.getElementById("modal-text-wrap");
+const modalLocationWrap = document.getElementById("modal-location-wrap");
+const modalLocationSearch = document.getElementById("modal-location-search");
+const modalLocationResults = document.getElementById("modal-location-results");
+const modalLatInput = document.getElementById("modal-lat");
+const modalLngInput = document.getElementById("modal-lng");
+const modalLocationHint = document.getElementById("modal-location-hint");
 const authOverlay = document.getElementById("auth-overlay");
 const authBtn = document.getElementById("auth-btn");
 
@@ -177,6 +183,7 @@ function openModal(config) {
   setFieldVisibility(modalTimeWrap, Boolean(config.fields.time));
   setFieldVisibility(modalUrlWrap, Boolean(config.fields.url));
   setFieldVisibility(modalTextWrap, Boolean(config.fields.text));
+  setFieldVisibility(modalLocationWrap, Boolean(config.fields.location));
 
   modalNameInput.value = config.values?.name || "";
   modalRegionInput.value = config.values?.region || "";
@@ -184,6 +191,11 @@ function openModal(config) {
   modalTimeInput.value = config.values?.time || "";
   modalUrlInput.value = config.values?.url || "";
   modalTextInput.value = config.values?.text || "";
+  modalLocationSearch.value = "";
+  modalLatInput.value = "";
+  modalLngInput.value = "";
+  modalLocationHint.textContent = "";
+  modalLocationResults.innerHTML = "";
 
   modalShell.classList.add("open");
   modalShell.setAttribute("aria-hidden", "false");
@@ -565,14 +577,53 @@ function handleModalSubmit(event) {
     const name = modalNameInput.value.trim();
     if (!name) return showToast("กรอกชื่อสถานที่ก่อน");
     const trip = getActiveTrip();
+    const lat = modalLatInput.value ? parseFloat(modalLatInput.value) : null;
+    const lng = modalLngInput.value ? parseFloat(modalLngInput.value) : null;
     trip.placesList.push({
       id: uid("pl"), sourceId: null, name, category: "custom",
       desc: "", note: modalTextInput.value.trim(), links: [],
-      visitStatus: "pending", estimatedTime: "", addedFrom: "custom"
+      visitStatus: "pending", estimatedTime: "", addedFrom: "custom",
+      ...(lat !== null && lng !== null && { lat, lng })
     });
     persist();
     closeModal();
   }
+}
+
+let geoTimer = null;
+
+async function geocodeSearch(query) {
+  if (!query.trim()) { modalLocationResults.innerHTML = ""; return; }
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=th,ja,en`;
+    const res = await fetch(url, { headers: { "Accept-Language": "th,ja,en" } });
+    const data = await res.json();
+    if (!data.length) {
+      modalLocationResults.innerHTML = `<div class="loc-no-result">ไม่พบสถานที่</div>`;
+      return;
+    }
+    modalLocationResults.innerHTML = data.map((item) =>
+      `<button type="button" class="loc-result-item" data-lat="${item.lat}" data-lng="${item.lon}" data-name="${item.display_name.split(",")[0]}">${item.display_name}</button>`
+    ).join("");
+  } catch {
+    modalLocationResults.innerHTML = `<div class="loc-no-result">ค้นหาไม่สำเร็จ</div>`;
+  }
+}
+
+function wireLocationSearch() {
+  modalLocationSearch.addEventListener("input", () => {
+    clearTimeout(geoTimer);
+    geoTimer = setTimeout(() => geocodeSearch(modalLocationSearch.value), 500);
+  });
+  modalLocationResults.addEventListener("click", (e) => {
+    const btn = e.target.closest(".loc-result-item");
+    if (!btn) return;
+    modalLatInput.value = btn.dataset.lat;
+    modalLngInput.value = btn.dataset.lng;
+    modalLocationHint.textContent = `📍 ${btn.dataset.name}`;
+    modalLocationResults.innerHTML = "";
+    modalLocationSearch.value = btn.dataset.name;
+  });
 }
 
 function updateDocFileMeta(file) {
@@ -591,6 +642,7 @@ function wireEvents() {
   tripNewBtn.addEventListener("click", () => openTemplatePicker());
   primaryNav.addEventListener("click", (event) => { const button = event.target.closest("[data-view]"); if (button) setView(button.dataset.view); });
   modalForm.addEventListener("submit", handleModalSubmit);
+  wireLocationSearch();
   modalShell.addEventListener("click", (event) => {
     const target = event.target.closest("[data-action]");
     if (!target) return;
@@ -747,7 +799,7 @@ function wireEvents() {
       openModal({
         type: "add-place", kicker: "เพิ่มสถานที่", title: "สถานที่ใหม่",
         targetId: "",
-        fields: { name: true, region: false, category: false, time: false, url: false, text: true },
+        fields: { name: true, region: false, category: false, time: false, url: false, text: true, location: true },
         values: { name: "", text: "" }
       });
     }

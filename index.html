@@ -111,6 +111,15 @@
           <textarea id="modal-text" class="field textarea-field" rows="5" placeholder="เขียนรายละเอียดที่ต้องการ"></textarea>
         </label>
 
+        <div id="modal-location-wrap" class="modal-field hidden">
+          <span>ค้นหาที่ตั้ง</span>
+          <input id="modal-location-search" class="field" type="text" autocomplete="off" placeholder="พิมพ์ชื่อสถานที่ ภาษาไทย / อังกฤษ / ญี่ปุ่น…">
+          <div id="modal-location-results" class="location-results" aria-live="polite"></div>
+          <input id="modal-lat" type="hidden" value="">
+          <input id="modal-lng" type="hidden" value="">
+          <p id="modal-location-hint" class="location-hint"></p>
+        </div>
+
         <div class="modal-actions">
           <button class="secondary-btn" type="button" data-action="close-modal">ยกเลิก</button>
           <button class="primary-btn" type="submit">บันทึก</button>
