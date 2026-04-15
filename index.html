@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kansai Trip App - Project 2</title>
+  <meta name="description" content="Project 2: Kansai Trip App เวอร์ชัน modular สำหรับ hackathon">
+  <meta name="theme-color" content="#b8342f">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <p class="eyebrow">Project 2 / Hackathon Build</p>
+        <h1>Kansai Trip App 2026</h1>
+        <p class="subtle">เวอร์ชันใหม่แบบหลายไฟล์, local-first, และเน้นใช้ระหว่างเดินทางจริง</p>
+      </div>
+      <div class="topbar-actions">
+        <label class="search-chip">
+          <span>ค้นหา</span>
+          <input id="global-search" type="search" placeholder="สถานที่, เมือง, ของกิน, pass...">
+        </label>
+        <button id="theme-toggle" class="ghost-btn" type="button">Dark</button>
+      </div>
+    </header>
+
+    <section class="hero-strip">
+      <div>
+        <p class="hero-kicker">Kansai 20-26 Nov 2026</p>
+        <h2>Dashboard + Today View + Import/Export + Modular Architecture</h2>
+      </div>
+      <div class="hero-badges" id="hero-badges"></div>
+    </section>
+
+    <nav class="nav-tabs" id="primary-nav">
+      <button class="nav-tab active" data-view="dashboard" type="button">Dashboard</button>
+      <button class="nav-tab" data-view="itinerary" type="button">Itinerary</button>
+      <button class="nav-tab" data-view="backup" type="button">Backup Spots</button>
+      <button class="nav-tab" data-view="docs" type="button">Docs</button>
+      <button class="nav-tab" data-view="checklist" type="button">Checklist</button>
+      <button class="nav-tab" data-view="budget" type="button">Budget</button>
+      <button class="nav-tab" data-view="settings" type="button">Settings</button>
+    </nav>
+
+    <main id="app" class="app-shell" aria-live="polite"></main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

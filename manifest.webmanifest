@@ -1,0 +1,11 @@
+{
+  "name": "Kansai Trip App Project 2",
+  "short_name": "Kansai P2",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f0ea",
+  "theme_color": "#b8342f",
+  "description": "Project 2 ของ Kansai Trip App เวอร์ชัน modular สำหรับ hackathon",
+  "lang": "th"
+}

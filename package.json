@@ -1,0 +1,11 @@
+{
+  "name": "kansai-trip-app-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Project 2 of Kansai Trip App: modular vanilla JS version for hackathon work",
+  "scripts": {
+    "serve": "python3 -m http.server 4173",
+    "check": "node ./scripts/check.mjs"
+  }
+}
