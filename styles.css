@@ -599,19 +599,93 @@ button:hover {
 .activity-card {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 10px 12px;
   background: var(--surface-strong);
+  transition: border-color 150ms ease;
+}
+
+.activity-card:hover {
+  border-color: var(--accent);
 }
 
 .activity-card.checked {
-  opacity: 0.72;
+  opacity: 0.6;
 }
 
-.activity-top {
+/* Compact card layout */
+.activity-card.compact .activity-top {
   display: flex;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 8px;
   align-items: flex-start;
+}
+
+.activity-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.activity-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.activity-headline strong {
+  font-size: 0.92rem;
+}
+
+.compact-desc {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.mini-tag {
+  padding: 2px 7px !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  opacity: 0.7;
+}
+
+/* Action row: hidden by default, show on hover or focus-within */
+.compact-actions {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin-top: 0;
+  transition: max-height 200ms ease, opacity 150ms ease, margin-top 150ms ease;
+}
+
+.activity-card:hover .compact-actions,
+.activity-card:focus-within .compact-actions {
+  max-height: 50px;
+  opacity: 1;
+  margin-top: 6px;
+}
+
+/* Always show on touch devices */
+@media (hover: none) {
+  .compact-actions {
+    max-height: 50px;
+    opacity: 1;
+    margin-top: 6px;
+  }
+}
+
+.compact-note {
+  margin-top: 4px;
+  font-size: 0.82rem;
+}
+
+.compact-links {
+  margin-top: 4px;
 }
 
 .activity-title {
@@ -622,11 +696,12 @@ button:hover {
 
 .time-pill {
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 3px 8px;
   background: var(--accent-soft);
   color: var(--accent);
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .note-box,

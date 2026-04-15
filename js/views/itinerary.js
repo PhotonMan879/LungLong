@@ -31,39 +31,39 @@ function renderActivityCard(activity, trip) {
   const mapAttrs = coordSrc?.lat && coordSrc?.lng
     ? `data-action="show-on-map" data-lat="${coordSrc.lat}" data-lng="${coordSrc.lng}" style="cursor:pointer"`
     : "";
+  const tagsInline = activity.tags.map(t => `<span class="inline-tag mini-tag">${t}</span>`).join("");
   return `
-    <article class="activity-card ${activityState.checked ? "checked" : ""}" ${mapAttrs}>
+    <article class="activity-card compact ${activityState.checked ? "checked" : ""}" ${mapAttrs}>
       <div class="activity-top">
-        <div class="activity-title">
-          <div>${activity.icon}</div>
-          <div>
-            <div class="day-title">${escapeHtml(activity.title)}</div>
-            <p class="muted">${escapeHtml(activity.desc)}</p>
-            <div class="chip-row" style="margin-top:4px;">${joinTags(activity.tags)}</div>
+        <span class="activity-icon">${activity.icon}</span>
+        <div class="activity-body">
+          <div class="activity-headline">
+            <strong>${escapeHtml(activity.title)}</strong>
+            <span class="time-pill">${activity.time}</span>
+            ${tagsInline}
           </div>
+          <p class="muted compact-desc">${escapeHtml(activity.desc)}</p>
         </div>
-        <div class="time-pill">${activity.time}</div>
       </div>
       ${
         activityState.note
-          ? `<div class="note-box" style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(activityState.note)}</div>`
+          ? `<div class="note-box compact-note"><strong>Note:</strong> ${escapeHtml(activityState.note)}</div>`
           : ""
       }
       ${
         activityState.links?.length
-          ? `<div class="link-list" style="margin-top:8px;">
+          ? `<div class="link-list compact-links">
               ${activityState.links.map((link, index) => renderLinkCard(link, activity.id, index)).join("")}
             </div>`
           : ""
       }
-      <div class="action-row" style="margin-top:8px;">
+      <div class="action-row compact-actions">
         <button class="tiny-btn" type="button" data-action="toggle-activity" data-activity-id="${activity.id}">
-          ${activityState.checked ? "เอาออกจาก done" : "Mark done"}
+          ${activityState.checked ? "Undo" : "Done"}
         </button>
-        <button class="tiny-btn" type="button" data-action="edit-note" data-activity-id="${activity.id}">Edit note</button>
-        <button class="tiny-btn" type="button" data-action="add-link" data-activity-id="${activity.id}">Add link</button>
+        <button class="tiny-btn" type="button" data-action="edit-note" data-activity-id="${activity.id}">Note</button>
+        <button class="tiny-btn" type="button" data-action="add-link" data-activity-id="${activity.id}">Link</button>
         <button class="tiny-btn" type="button" data-action="open-maps" data-query="${escapeHtml(activity.title)} Japan">Maps</button>
-        <button class="tiny-btn" type="button" data-action="open-research" data-query="${escapeHtml(activity.title)}">Research</button>
       </div>
     </article>
   `;
