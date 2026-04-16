@@ -1,34 +1,52 @@
 :root {
-  --bg: #f6f0ea;
-  --surface: rgba(255, 255, 255, 0.84);
+  /* ─ Surfaces ─ */
+  --bg:             #f0f2f7;
+  --surface:        rgba(255, 255, 255, 0.96);
   --surface-strong: #ffffff;
-  --text: #1f1b18;
-  --muted: #6f655e;
-  --line: #ded5cd;
-  --accent: #b8342f;
-  --accent-2: #df8a4d;
-  --accent-soft: rgba(184, 52, 47, 0.1);
-  --success: #1f8a5b;
-  --warning: #c98a14;
-  --danger: #cb3a36;
-  --shadow: 0 20px 55px rgba(48, 29, 18, 0.08);
-  --radius-xl: 28px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
+
+  /* ─ Text ─ */
+  --text:  #16181f;
+  --muted: #64748b;
+
+  /* ─ Lines ─ */
+  --line: #e2e6ef;
+
+  /* ─ Brand / Accent ─ */
+  --accent:      #e84545;
+  --accent-2:    #ff8c42;
+  --accent-soft: rgba(232, 69, 69, 0.09);
+
+  /* ─ Semantic ─ */
+  --success: #059669;
+  --warning: #d97706;
+  --danger:  #dc2626;
+
+  /* ─ Shadows ─ */
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow:       0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg:    0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-hover: 0 8px 28px rgba(232,69,69,0.16), 0 2px 8px rgba(0,0,0,0.06);
+
+  /* ─ Radii ─ */
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm:  8px;
 }
 
 html[data-theme="dark"] {
-  --bg: #17181d;
-  --surface: rgba(34, 37, 44, 0.92);
-  --surface-strong: #232730;
-  --text: #f5f1ea;
-  --muted: #b9b0a6;
-  --line: #3c4250;
-  --accent: #f16054;
-  --accent-2: #ffb76b;
-  --accent-soft: rgba(241, 96, 84, 0.14);
-  --shadow: 0 20px 55px rgba(0, 0, 0, 0.28);
+  --bg:             #10121a;
+  --surface:        rgba(22, 26, 38, 0.97);
+  --surface-strong: #1c2033;
+  --text:           #f0f4ff;
+  --muted:          #8b98b8;
+  --line:           #2a3050;
+  --accent:         #ff6b6b;
+  --accent-2:       #ffb347;
+  --accent-soft:    rgba(255, 107, 107, 0.13);
+  --shadow:         0 4px 16px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.25);
+  --shadow-lg:      0 12px 40px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-hover:   0 8px 28px rgba(255,107,107,0.22), 0 2px 8px rgba(0,0,0,0.35);
 }
 
 * {
@@ -40,10 +58,10 @@ body {
   font-family: "Sarabun", "Inter", sans-serif;
   color: var(--text);
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.65;
   background:
-    radial-gradient(circle at top left, rgba(223, 138, 77, 0.18), transparent 25%),
-    radial-gradient(circle at top right, rgba(184, 52, 47, 0.12), transparent 30%),
+    radial-gradient(ellipse at top left,  rgba(232,69,69,0.08)  0%, transparent 40%),
+    radial-gradient(ellipse at top right, rgba(255,140,66,0.07) 0%, transparent 40%),
     var(--bg);
   min-height: 100vh;
 }
@@ -76,10 +94,20 @@ a {
 .checklist-item,
 .backup-card,
 .settings-card {
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+.metric-card:hover,
+.day-card:hover,
+.doc-card:hover,
+.backup-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
 
 .topbar {
@@ -97,9 +125,13 @@ a {
 .panel-title {
   margin: 0;
   font-family: "Kanit", sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
+
+.section-title { font-size: 1.25rem; }
+.brand h1      { font-size: 1.15rem; letter-spacing: -0.01em; }
 
 h1, h2, h3, h4, h5, h6,
 .nav-tab,
@@ -176,58 +208,109 @@ h1, h2, h3, h4, h5, h6,
 .ghost-btn,
 .primary-btn,
 .secondary-btn,
+.filter-chip,
 .tiny-btn,
 .pill-btn {
   border: 0;
   cursor: pointer;
   border-radius: 999px;
-  transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease, border-color 180ms ease;
 }
 
-.ghost-btn,
-.pill-btn,
-.secondary-btn,
+/* ── Primary — filled gradient, strong shadow ── */
+.primary-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #fff;
+  padding: 12px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 14px rgba(232,69,69,0.35);
+  border: none;
+}
+.primary-btn:hover {
+  box-shadow: 0 6px 20px rgba(232,69,69,0.45);
+  transform: translateY(-2px);
+}
+
+/* ── Secondary — accent outline ── */
+.secondary-btn {
+  background: var(--surface-strong);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  padding: 9px 16px;
+  font-weight: 600;
+}
+.secondary-btn:hover {
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+/* ── Ghost / base ── */
+.ghost-btn {
+  background: var(--surface-strong);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 10px 14px;
+}
+.ghost-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Pill nav button ── */
+.pill-btn {
+  background: var(--surface-strong);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.pill-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(232,69,69,0.3);
+}
+.pill-btn:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Tiny — compact action buttons ── */
 .tiny-btn {
   background: var(--surface-strong);
   color: var(--text);
   border: 1px solid var(--line);
-}
-
-.primary-btn {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  padding: 12px 18px;
-  font-weight: 700;
-}
-
-.secondary-btn {
-  padding: 11px 16px;
-}
-
-.ghost-btn,
-.tiny-btn,
-.pill-btn {
-  padding: 10px 14px;
-}
-
-.tiny-btn {
-  padding: 6px 10px;
+  padding: 5px 11px;
   font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 999px;
+}
+.tiny-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 
+/* ── Danger variant ── */
 .tiny-btn.danger-btn {
-  color: var(--danger, #e53935);
-  border-color: var(--danger, #e53935);
-  opacity: 0.7;
+  color: var(--danger);
+  border-color: rgba(220,38,38,0.35);
+  background: rgba(220,38,38,0.04);
 }
 .tiny-btn.danger-btn:hover {
-  background: var(--danger, #e53935);
+  background: var(--danger);
   color: #fff;
-  opacity: 1;
+  border-color: var(--danger);
+  box-shadow: 0 2px 10px rgba(220,38,38,0.3);
 }
 
-button:hover {
+button:not(:disabled):hover {
   transform: translateY(-1px);
+}
+button:not(:disabled):active {
+  transform: translateY(0);
 }
 
 .hero-strip {
@@ -268,29 +351,39 @@ button:hover {
 .status-chip,
 .inline-tag {
   border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 0.84rem;
+  padding: 5px 12px;
+  font-size: 0.8rem;
   font-weight: 700;
   background: var(--surface-strong);
   border: 1px solid var(--line);
+  letter-spacing: 0.01em;
+}
+
+.filter-chip {
+  cursor: pointer;
+  transition: background 160ms, color 160ms, border-color 160ms, box-shadow 160ms;
+}
+.filter-chip:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .status-chip.good {
   color: var(--success);
-  background: rgba(31, 138, 91, 0.12);
-  border-color: rgba(31, 138, 91, 0.24);
+  background: rgba(5,150,105,0.10);
+  border-color: rgba(5,150,105,0.25);
 }
 
 .status-chip.warn {
   color: var(--warning);
-  background: rgba(201, 138, 20, 0.12);
-  border-color: rgba(201, 138, 20, 0.22);
+  background: rgba(217,119,6,0.10);
+  border-color: rgba(217,119,6,0.25);
 }
 
 .status-chip.bad {
   color: var(--danger);
-  background: rgba(203, 58, 54, 0.12);
-  border-color: rgba(203, 58, 54, 0.22);
+  background: rgba(220,38,38,0.10);
+  border-color: rgba(220,38,38,0.25);
 }
 
 .nav-tabs {
@@ -537,9 +630,10 @@ button:hover {
 
 .day-switcher .pill-btn.active,
 .filter-chip.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: rgba(184, 52, 47, 0.26);
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(232,69,69,0.28);
 }
 
 .day-card {
@@ -604,18 +698,22 @@ button:hover {
 
 .activity-card {
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   background: var(--surface-strong);
-  transition: border-color 150ms ease;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .activity-card:hover {
   border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(232,69,69,0.10);
+  transform: translateY(-1px);
 }
 
 .activity-card.checked {
-  opacity: 0.6;
+  opacity: 0.55;
+  border-style: dashed;
 }
 
 /* Activity top layout — applies to all activity cards */
@@ -689,12 +787,13 @@ button:hover {
 
 .time-pill {
   border-radius: 999px;
-  padding: 3px 8px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.75rem;
+  padding: 2px 9px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 0.73rem;
   font-weight: 700;
   white-space: nowrap;
+  box-shadow: 0 1px 6px rgba(232,69,69,0.25);
 }
 
 .note-box,
