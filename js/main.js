@@ -59,6 +59,7 @@ let state = loadState();
 state.rainMode = false; // UI-only, not persisted
 state.placesFilter = "all"; // UI-only, not persisted
 state.movingPlaceId = null; // UI-only, not persisted
+state._collapsedDays = {}; // UI-only: { [dayId]: true|false } overrides for itinerary collapse
 let toastTimer = null;
 let dragSrcSpotId = null;
 let currentUserId = null;
@@ -712,11 +713,36 @@ function wireEvents() {
     const action = target.dataset.action;
     if (action === "switch-view") setView(target.dataset.view);
     if (action === "set-day") { getActiveTrip().dayId = Number(target.dataset.dayId); persist(); }
+    if (action === "toggle-day-collapse") {
+      const dayId = Number(target.dataset.dayId);
+      const trip = getActiveTrip();
+      // Determine current collapsed state (default: all days except active are collapsed)
+      const currentCollapsed = (dayId in state._collapsedDays)
+        ? state._collapsedDays[dayId]
+        : dayId !== trip.dayId;
+      state._collapsedDays[dayId] = !currentCollapsed;
+      // When expanding a day, also set it as the active day
+      if (currentCollapsed) { trip.dayId = dayId; persist(); }
+      else { render(); }
+    }
     if (action === "set-filter") { state.filter = target.dataset.filter; persist(); }
     if (action === "toggle-activity") handleActivityToggle(target.dataset.activityId);
     if (action === "edit-note") handleActivityNote(target.dataset.activityId);
     if (action === "add-link") handleActivityLink(target.dataset.activityId);
     if (action === "remove-link") removeActivityLink(target.dataset.activityId, Number(target.dataset.linkIndex));
+    if (action === "remove-activity") {
+      const trip = getActiveTrip();
+      const activityId = target.dataset.activityId;
+      const dayId = Number(target.dataset.dayId);
+      const day = trip.days.find((d) => d.id === dayId);
+      if (day) {
+        const act = day.activities.find((a) => a.id === activityId);
+        day.activities = day.activities.filter((a) => a.id !== activityId);
+        delete trip.activities[activityId]; // clean up per-activity state
+        if (act) showToast(`ลบ "${act.title}" ออกจาก Day ${dayId} แล้ว`);
+        persist();
+      }
+    }
     if (action === "open-link") openInNewTab(target.dataset.url);
     if (action === "close-modal") closeModal();
     if (action === "open-maps") openInNewTab(mapsSearchUrl(target.dataset.query));
@@ -913,7 +939,20 @@ function wireEvents() {
 }
 
 function registerServiceWorker() {
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
+  if (!("serviceWorker" in navigator)) return;
+
+  // updateViaCache: 'none' → browser ไม่ใช้ HTTP cache ในการตรวจ sw.js
+  // ทำให้ browser เห็น sw.js ใหม่ทันทีหลัง deploy โดยไม่ต้องรอ max-age หมด
+  navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((reg) => {
+    // ตรวจ update ทันทีเมื่อโหลดหน้า (ไม่รอ browser trigger เอง)
+    reg.update();
+
+    // เมื่อ SW ใหม่ active (ผ่าน skipWaiting + clients.claim) → reload อัตโนมัติ
+    // ทำให้ทุกอุปกรณ์เห็น version ใหม่ใน page load ถัดไปโดยไม่ต้อง hard refresh
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
+  }).catch(() => {});
 }
 
 function wireAuthEvents() {

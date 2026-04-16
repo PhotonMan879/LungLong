@@ -1,5 +1,14 @@
 import { escapeHtml, getLinkPreview, joinTags, mapsSearchUrl, researchUrl, textMatches } from "../core/utils.js";
 
+// ── category emoji helper (inline, no extra import) ──
+const CAT_EMOJI = {
+  food: "🍜", temple: "⛩", nature: "🌿", culture: "🏯",
+  view: "🌆", shopping: "🛍", custom: "📍"
+};
+function catEmoji(cat) { return CAT_EMOJI[cat] || "📍"; }
+
+// ── filters ──────────────────────────────────────────
+
 function matchesFilter(activityState, filter) {
   if (filter === "all") return true;
   return filter === "done" ? activityState.checked : !activityState.checked;
@@ -15,16 +24,26 @@ function getTimeBucket(time) {
 
 function getBucketMeta(bucket) {
   return {
-    morning: { label: "Morning", emoji: "🌤", hint: "ก่อนเที่ยง / เริ่มวัน" },
-    afternoon: { label: "Afternoon", emoji: "☀️", hint: "เที่ยงถึงบ่าย" },
-    evening: { label: "Evening", emoji: "🌙", hint: "เย็นถึงค่ำ" },
-    flex: { label: "Flexible", emoji: "🗂", hint: "เวลาไม่ชัดเจน" }
+    morning:   { label: "Morning",   emoji: "🌤",  hint: "ก่อนเที่ยง / เริ่มวัน" },
+    afternoon: { label: "Afternoon", emoji: "☀️",  hint: "เที่ยงถึงบ่าย" },
+    evening:   { label: "Evening",   emoji: "🌙",  hint: "เย็นถึงค่ำ" },
+    flex:      { label: "Flexible",  emoji: "🗂",  hint: "เวลาไม่ชัดเจน" }
   }[bucket];
 }
 
-function renderActivityCard(activity, trip) {
+// ── collapse state helper ─────────────────────────────
+// Default: only the active day (trip.dayId) is expanded.
+// User overrides stored in state._collapsedDays = { [dayId]: true|false }
+function isDayCollapsed(state, dayId, activeDayId) {
+  const overrides = state._collapsedDays || {};
+  if (dayId in overrides) return overrides[dayId];
+  return dayId !== activeDayId; // implicit default
+}
+
+// ── activity card ────────────────────────────────────
+
+function renderActivityCard(activity, trip, dayId) {
   const activityState = trip.activities[activity.id] || { checked: false, note: "", links: [] };
-  // Look up coordinates from recommendedPlaces or placesList by title match
   const recMap = new Map((trip.recommendedPlaces || []).map((r) => [r.name, r]));
   const savedMap = new Map((trip.placesList || []).map((p) => [p.name, p]));
   const coordSrc = recMap.get(activity.title) || savedMap.get(activity.title);
@@ -64,45 +83,138 @@ function renderActivityCard(activity, trip) {
         <button class="tiny-btn" type="button" data-action="edit-note" data-activity-id="${activity.id}">Note</button>
         <button class="tiny-btn" type="button" data-action="add-link" data-activity-id="${activity.id}">Link</button>
         <button class="tiny-btn" type="button" data-action="open-maps" data-query="${escapeHtml(activity.title)} Japan">Maps</button>
+        <button class="tiny-btn danger-btn" type="button" data-action="remove-activity" data-activity-id="${activity.id}" data-day-id="${dayId}">ลบ</button>
       </div>
     </article>
   `;
 }
 
-export function renderItinerary(state, trip) {
-  const day = trip.days.find((item) => item.id === trip.dayId) || trip.days[0];
-  const activities = day.activities.filter((activity) => {
+// ── recommended badge strip ───────────────────────────
+// Compact pills shown at bottom of each expanded day.
+// Only shows places NOT already in that day's activities.
+
+function renderRecBadgeStrip(day, trip) {
+  const recPlaces = trip.recommendedPlaces || [];
+  const dayActTitles = new Set(day.activities.map((a) => a.title));
+  const available = recPlaces.filter((r) => !dayActTitles.has(r.name));
+  if (!available.length) return "";
+
+  const badges = available.map((r) => `
+    <button
+      class="rec-badge"
+      type="button"
+      data-action="inline-add-itinerary"
+      data-day-id="${day.id}"
+      data-rec-id="${r.id}"
+      title="${escapeHtml(r.name)}${r.estimatedTime ? " · " + r.estimatedTime : ""}"
+    >${catEmoji(r.category)} ${escapeHtml(r.name)} <span class="rec-badge-plus">+</span></button>
+  `).join("");
+
+  return `
+    <div class="rec-badge-strip">
+      <span class="rec-badge-label">แนะนำ</span>
+      <div class="rec-badge-scroll">${badges}</div>
+    </div>
+  `;
+}
+
+// ── day content (activities + badge strip) ────────────
+
+function renderDayContent(day, filteredActivities, trip, state) {
+  const activityHtml = filteredActivities.length
+    ? ["morning", "afternoon", "evening", "flex"]
+        .map((bucket) => {
+          const bucketActivities = filteredActivities.filter(
+            (activity) => getTimeBucket(activity.time) === bucket
+          );
+          if (!bucketActivities.length) return "";
+          const meta = getBucketMeta(bucket);
+          return `
+            <section class="timeline-section">
+              <div class="timeline-section-head">
+                <div>
+                  <p class="tiny">${meta.hint}</p>
+                  <h4 class="timeline-section-title">${meta.emoji} ${meta.label}</h4>
+                </div>
+                <span class="meta-chip">${bucketActivities.length} stops</span>
+              </div>
+              <div class="activity-stack">
+                ${bucketActivities.map((activity) => renderActivityCard(activity, trip, day.id)).join("")}
+              </div>
+            </section>
+          `;
+        })
+        .join("")
+    : `<div class="empty-state">ไม่มีรายการที่ตรงกับ filter หรือคำค้นหาในวันนี้</div>`;
+
+  return `
+    <div class="day-collapse-body">
+      <div class="day-body-meta">
+        <span class="status-chip ${day.pass ? "good" : "warn"}">${day.pass ? "Pass ใช้ได้" : "ใช้ ICOCA/ตั๋วแยก"}</span>
+        <a class="secondary-btn" href="${mapsSearchUrl(`${day.theme} ${day.city} japan`)}" target="_blank" rel="noreferrer">แผนที่วันนี้</a>
+        <a class="secondary-btn" href="${researchUrl(day.theme)}" target="_blank" rel="noreferrer">Research</a>
+      </div>
+      <div class="activity-stack timeline-sections" style="margin-top:10px;">
+        ${activityHtml}
+      </div>
+      ${renderRecBadgeStrip(day, trip)}
+    </div>
+  `;
+}
+
+// ── single collapsible day row ────────────────────────
+
+function renderDaySection(day, trip, state) {
+  const isCollapsed = isDayCollapsed(state, day.id, trip.dayId);
+  const filteredActivities = day.activities.filter((activity) => {
     const activityState = trip.activities[activity.id] || {};
-    const searchable = `${activity.title} ${activity.desc} ${activity.tags.join(" ")} ${day.city}`;
+    const searchable = `${activity.title} ${activity.desc} ${activity.tags.join(" ")} ${day.city || ""}`;
     return matchesFilter(activityState, state.filter) && textMatches(searchable, state.search);
   });
 
+  const doneCount = day.activities.filter((a) => (trip.activities[a.id] || {}).checked).length;
+  const totalCount = day.activities.length;
+
+  return `
+    <div class="day-collapse-section ${isCollapsed ? "collapsed" : "expanded"}" id="day-section-${day.id}">
+      <button
+        class="day-collapse-header"
+        type="button"
+        data-action="toggle-day-collapse"
+        data-day-id="${day.id}"
+        aria-expanded="${!isCollapsed}"
+      >
+        <div class="day-collapse-left">
+          <span class="day-collapse-arrow" aria-hidden="true">${isCollapsed ? "▶" : "▼"}</span>
+          <span class="day-chip">Day ${day.id}</span>
+          <div class="day-collapse-info">
+            <span class="day-collapse-date">${escapeHtml(day.date || "")}</span>
+            <span class="day-collapse-theme">${escapeHtml(day.theme || "")}</span>
+          </div>
+        </div>
+        <div class="day-collapse-right">
+          <span class="meta-chip">${doneCount}/${totalCount}</span>
+          ${day.pass ? `<span class="status-chip good" style="font-size:0.72rem;padding:2px 7px;">🎫 Pass</span>` : ""}
+        </div>
+      </button>
+      ${!isCollapsed ? renderDayContent(day, filteredActivities, trip, state) : ""}
+    </div>
+  `;
+}
+
+// ── main export ───────────────────────────────────────
+
+export function renderItinerary(state, trip) {
   return `
     <section class="panel">
       <div class="day-header">
         <div>
           <p class="tiny">Trip timeline</p>
           <h2 class="section-title">Daily itinerary</h2>
-          <p class="muted">เลือกวัน, filter สถานะ, และแก้ note/link ของแต่ละกิจกรรมได้จากที่นี่</p>
-        </div>
-        <div class="badge-row">
-          <span class="status-chip ${day.pass ? "good" : "warn"}">${day.pass ? "Pass ใช้ได้" : "ใช้ ICOCA/ตั๋วแยก"}</span>
-          <a class="secondary-btn" href="${mapsSearchUrl(`${day.theme} ${day.city} japan`)}" target="_blank" rel="noreferrer">แผนที่วันนี้</a>
-          <a class="secondary-btn" href="${researchUrl(day.theme)}" target="_blank" rel="noreferrer">Research day</a>
+          <p class="muted">กดหัว Day เพื่อเปิด/ปิดแต่ละวัน — filter สถานะ และแก้ note/link ได้จากที่นี่</p>
         </div>
       </div>
-
-      <div class="day-switcher" style="margin-top:10px;">
-        ${trip.days.map(
-          (item) => `
-            <button class="pill-btn ${item.id === day.id ? "active" : ""}" type="button" data-action="set-day" data-day-id="${item.id}">
-              Day ${item.id}
-            </button>
-          `
-        ).join("")}
-      </div>
-
-      <div class="filter-row" style="margin-top:8px;">
+      <div class="filter-row" style="margin-top:10px;">
         ${["all", "todo", "done"].map(
           (filter) => `
             <button class="filter-chip ${state.filter === filter ? "active" : ""}" type="button" data-action="set-filter" data-filter="${filter}">
@@ -113,71 +225,13 @@ export function renderItinerary(state, trip) {
       </div>
     </section>
 
-    <section class="panel">
-      <div class="day-header">
-        <div>
-          <h3 class="section-title">Day ${day.id} - ${day.date}</h3>
-          <p class="muted">${day.theme}</p>
-        </div>
-      </div>
-      <div class="activity-stack timeline-sections" style="margin-top:10px;">
-        ${
-          activities.length
-            ? ["morning", "afternoon", "evening", "flex"]
-                .map((bucket) => {
-                  const bucketActivities = activities.filter((activity) => getTimeBucket(activity.time) === bucket);
-                  if (!bucketActivities.length) return "";
-                  const meta = getBucketMeta(bucket);
-                  return `
-                    <section class="timeline-section">
-                      <div class="timeline-section-head">
-                        <div>
-                          <p class="tiny">${meta.hint}</p>
-                          <h4 class="timeline-section-title">${meta.emoji} ${meta.label}</h4>
-                        </div>
-                        <span class="meta-chip">${bucketActivities.length} stops</span>
-                      </div>
-                      <div class="activity-stack">
-                        ${bucketActivities.map((activity) => renderActivityCard(activity, trip)).join("")}
-                      </div>
-                    </section>
-                  `;
-                })
-                .join("")
-            : `<div class="empty-state">ไม่มีรายการที่ตรงกับ filter หรือคำค้นหาในวันนี้</div>`
-        }
-      </div>
-
-      ${(() => {
-        const recPlaces = (trip.recommendedPlaces || []);
-        const dayActIds = new Set(day.activities.map((a) => a.title));
-        const availableRec = recPlaces.filter((r) => !dayActIds.has(r.name));
-
-        if (!availableRec.length) return "";
-
-        return `
-          <div class="inline-add-place">
-            <div class="inline-add-head">
-              <span style="font-size:1.2rem;">📍</span> เพิ่มสถานที่ท่องเที่ยวด่วน (Day ${day.id})
-            </div>
-            <div class="inline-rec-scroll">
-              ${availableRec.map(r => `
-                <div class="inline-rec-card">
-                  <div class="place-rec-name" title="${escapeHtml(r.name)}"><strong>${escapeHtml(r.name)}</strong></div>
-                  <div style="font-size:0.8rem;" class="muted">${escapeHtml(r.estimatedTime || "")} • ${escapeHtml(r.category)}</div>
-                  <button class="secondary-btn" style="padding:6px; margin-top:4px; border:1px solid var(--accent); color:var(--accent);" type="button" data-action="inline-add-itinerary" data-day-id="${day.id}" data-rec-id="${r.id}">
-                    + ยัดใส่ลงแผน
-                  </button>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `;
-      })()}
-
+    <section class="panel itinerary-all-days">
+      ${trip.days.map((day) => renderDaySection(day, trip, state)).join("")}
     </section>
   `;
 }
+
+// ── link card ────────────────────────────────────────
 
 function renderLinkCard(link, activityId, index) {
   const preview = getLinkPreview(link);

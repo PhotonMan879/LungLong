@@ -1,47 +1,23 @@
-const CACHE_NAME = "kansai-project-2-v8";
-const ASSETS = [
-  "./",
-  "./index.html",
-  "./styles.css",
-  "./manifest.webmanifest",
-  "./js/main.js",
-  "./js/core/map.js",
-  "./js/core/utils.js",
-  "./js/core/storage.js",
-  "./js/core/state.js",
-  "./js/core/supabase.js",
-  "./js/core/supabase-config.js",
-  "./js/data/trip-data.js",
-  "./js/views/dashboard.js",
-  "./js/views/itinerary.js",
-  "./js/views/places.js",
-  "./js/views/backup.js",
-  "./js/views/docs.js",
-  "./js/views/checklist.js",
-  "./js/views/budget.js",
-  "./js/views/settings.js",
-  "./js/views/auth.js",
-  "./js/views/assist.js",
-  "./js/views/prep.js",
-  "./js/views/transport.js",
-  "./js/views/template-picker.js"
-];
+const CACHE_NAME = "kansai-project-2-v9";
 
+// install: ไม่ pre-cache แล้ว — network-first fetch จัดการเอง
+// การ pre-cache ใน install ทำให้ JS เก่าค้างใน cache ขณะที่หน้าโหลดอยู่แล้ว
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
-  self.skipWaiting();
+  self.skipWaiting(); // activate ทันทีโดยไม่รอ tab เก่าปิด
 });
 
 self.addEventListener("activate", (event) => {
+  // ลบ cache เก่าทุก version ที่ไม่ใช่ปัจจุบัน
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
     )
   );
+  // claim ทุก client ที่เปิดอยู่ทันที → trigger controllerchange ในหน้า → auto-reload
   self.clients.claim();
 });
 
-// Network-first: always try network, fall back to cache (works offline)
+// Network-first: ลอง network ก่อน, cache เมื่อได้ response, fallback cache เมื่อ offline
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
