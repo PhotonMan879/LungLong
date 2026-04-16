@@ -395,6 +395,7 @@ button:not(:disabled):active {
   scrollbar-width: none;
   margin: 10px 0;
   padding-bottom: 4px;
+  padding-right: 20px; /* กันปุ่มสุดท้ายโดนตัด */
   position: relative;
 }
 
