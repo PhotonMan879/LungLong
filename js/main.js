@@ -383,6 +383,28 @@ function saveTripFromModal() {
   closeModal();
 }
 
+// สร้าง thumbnail เล็กจาก image file (120px, JPEG 70%)
+// คืน data URL หรือ null ถ้าไม่ใช่ image
+async function generateThumbnail(file) {
+  if (!file.type.startsWith("image/")) return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 120;
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.7));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+}
+
 async function handleDocSave() {
   const trip = getActiveTrip();
   const nameInput = document.getElementById("doc-name");
@@ -392,17 +414,34 @@ async function handleDocSave() {
   const name = nameInput?.value?.trim() || file?.name?.trim();
   if (!file || !name) return showToast("กรอกชื่อเอกสารและเลือกไฟล์ก่อน");
   const id = uid("doc");
+  const thumbnail = await generateThumbnail(file);
   await putDocBlob(id, file);
-  trip.docs.unshift({ id, name, type: file.type || "file", tags: tagsInput?.value?.split(",").map((tag) => tag.trim()).filter(Boolean) || [], size: file.size, createdAt: new Date().toISOString() });
+  trip.docs.unshift({
+    id, name,
+    type: file.type || "file",
+    tags: tagsInput?.value?.split(",").map((t) => t.trim()).filter(Boolean) || [],
+    size: file.size,
+    createdAt: new Date().toISOString(),
+    thumbnail: thumbnail || null
+  });
   persist();
+  // sync blob ขึ้น Supabase storage ถ้า login อยู่
+  if (currentUserId) uploadDocToCloud(currentUserId, id, file).catch(() => {});
   nameInput.value = "";
   tagsInput.value = "";
   fileInput.value = "";
+  showToast(`บันทึก "${name}" แล้ว${currentUserId ? " · กำลัง sync…" : " (local)"}`);
 }
 
 async function handleOpenDoc(docId) {
-  const blob = await getDocBlob(docId);
-  if (!blob) return showToast("หาไฟล์ไม่เจอใน IndexedDB");
+  let blob = await getDocBlob(docId);
+  // ถ้าไม่มีใน IndexedDB และ login อยู่ → download จาก Supabase แล้ว cache ไว้
+  if (!blob && currentUserId) {
+    showToast("กำลังดาวน์โหลดจาก cloud…");
+    blob = await downloadDocFromCloud(currentUserId, docId);
+    if (blob) await putDocBlob(docId, blob);
+  }
+  if (!blob) return showToast("หาไฟล์ไม่เจอ — ลอง upload ใหม่อีกครั้ง");
   const url = URL.createObjectURL(blob);
   openInNewTab(url);
   setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -412,6 +451,7 @@ async function handleDeleteDoc(docId) {
   const trip = getActiveTrip();
   trip.docs = trip.docs.filter((doc) => doc.id !== docId);
   await deleteDocBlob(docId);
+  if (currentUserId) deleteDocFromCloud(currentUserId, docId).catch(() => {});
   persist();
 }
 

@@ -872,6 +872,96 @@ button:hover {
   color: var(--muted);
 }
 
+/* ── Doc card thumbnail layout ───────────────────── */
+
+.doc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  padding: 0 !important;
+  border: 1px solid var(--line);
+}
+
+.doc-thumb {
+  width: 100%;
+  height: 110px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-strong);
+  flex-shrink: 0;
+}
+
+.doc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doc-thumb-icon {
+  font-size: 2.4rem;
+}
+
+.doc-type-pdf   { background: #fff0f0; }
+.doc-type-image { background: #f0f4ff; }
+.doc-type-word  { background: #f0f7ff; }
+.doc-type-excel { background: #f0fff4; }
+.doc-type-text  { background: #fafafa; }
+.doc-type-file  { background: var(--surface-strong); }
+
+html[data-theme="dark"] .doc-type-pdf   { background: rgba(255,80,80,0.12); }
+html[data-theme="dark"] .doc-type-image { background: rgba(80,120,255,0.12); }
+html[data-theme="dark"] .doc-type-word  { background: rgba(40,100,255,0.12); }
+html[data-theme="dark"] .doc-type-excel { background: rgba(40,180,80,0.12); }
+
+.doc-card-body {
+  padding: 10px 12px 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-type-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin: 0 0 2px;
+}
+
+.doc-card-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-tags {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.doc-card-actions {
+  padding: 8px 12px 10px;
+  display: flex;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+}
+
 .doc-form {
   display: grid;
   gap: 12px;
